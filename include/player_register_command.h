@@ -62,7 +62,7 @@ private:
         const std::string& confirmPassword = args[2];
 
         if (password != confirmPassword) {
-            sender.sendErrorMessage("Passwords do not match!");
+            sender.sendErrorMessage("Пароли не совпадают!");
             return true;
         }
 
@@ -106,7 +106,7 @@ private:
         const std::string& confirmPassword = args[2];
 
         if (newPassword != confirmPassword) {
-            sender.sendErrorMessage("New passwords do not match!");
+            sender.sendErrorMessage("Новые пароли не совпадают!");
             return true;
         }
 
@@ -131,12 +131,12 @@ private:
         if (action == "info") {
             PlayerRegister::AccountManager::showAccountInfo(*player);
         } else {
-            sender.sendMessage(endstone::ColorFormat::Yellow + "Account Management Commands:");
-            sender.sendMessage(endstone::ColorFormat::Gold + "/account - Show account information");
-            sender.sendMessage(endstone::ColorFormat::Gold + "/register <username> <password> <confirm> - Create account");
-            sender.sendMessage(endstone::ColorFormat::Gold + "/login <username> <password> - Login to account");
-            sender.sendMessage(endstone::ColorFormat::Gold + "/changepassword <old> <new> <confirm> - Change password");
-            sender.sendMessage(endstone::ColorFormat::Gold + "/logout - Logout from account");
+            sender.sendMessage(endstone::ColorFormat::Yellow + "Команды управления аккаунтом:");
+            sender.sendMessage(endstone::ColorFormat::Gold + "/account - Показать информацию об аккаунте");
+            sender.sendMessage(endstone::ColorFormat::Gold + "/register <ник> <пароль> <подтверждение> - Создать аккаунт");
+            sender.sendMessage(endstone::ColorFormat::Gold + "/login <ник> <пароль> - Войти в аккаунт");
+            sender.sendMessage(endstone::ColorFormat::Gold + "/changepassword <старый> <новый> <подтверждение> - Сменить пароль");
+            sender.sendMessage(endstone::ColorFormat::Gold + "/logout - Выйти из аккаунта");
         }
 
         return true;
@@ -151,7 +151,7 @@ private:
         }
 
         if (args.size() < 1) {
-            sender.sendErrorMessage("Usage: /resetpassword <username>");
+            sender.sendErrorMessage("Использование: /resetpassword <ник>");
             return true;
         }
 
@@ -161,10 +161,10 @@ private:
         std::string newPassword = std::to_string(rand() % 900000 + 100000); // 6-digit number
         
         if (PlayerRegister::AccountManager::changePassword(username, newPassword)) {
-            sender.sendMessage(endstone::ColorFormat::Green + "Password for account '" + username + "' has been reset to: " + newPassword);
+            sender.sendMessage(endstone::ColorFormat::Green + "Пароль для аккаунта '" + username + "' был сброшен на: " + newPassword);
             return true;
         } else {
-            sender.sendErrorMessage("Account '" + username + "' not found!");
+            sender.sendErrorMessage("Аккаунт '" + username + "' не найден!");
             return true;
         }
     }
@@ -179,10 +179,10 @@ private:
         
         // Remove player data to logout
         if (PlayerRegister::Database::removePlayer(PlayerRegister::PlayerManager::getId(player))) {
-            sender.sendMessage(endstone::ColorFormat::Green + "Successfully logged out!");
+            sender.sendMessage(endstone::ColorFormat::Green + "Успешный выход из аккаунта!");
             PlayerRegister::PlayerManager::reconnect(player);
         } else {
-            sender.sendErrorMessage("You are not logged in to any account!");
+            sender.sendErrorMessage("Вы не вошли в аккаунт!");
         }
 
         return true;

@@ -32,12 +32,12 @@ bool AccountManager::createAccount(endstone::Player& pl, const std::string& name
     trimString(trimmedPassword);
 
     if (!validateUsername(trimmedName)) {
-        pl.sendMessage(endstone::ColorFormat::Red + "Username must be between 3 and 16 characters long!");
+        pl.sendMessage(endstone::ColorFormat::Red + "Имя пользователя должно быть от 3 до 16 символов!");
         return false;
     }
 
     if (!validatePassword(trimmedPassword)) {
-        pl.sendMessage(endstone::ColorFormat::Red + "Password must be at least 4 characters long!");
+        pl.sendMessage(endstone::ColorFormat::Red + "Пароль должен быть не менее 4 символов!");
         return false;
     }
 
@@ -47,7 +47,7 @@ bool AccountManager::createAccount(endstone::Player& pl, const std::string& name
     Database::loadAsAccount(data);
     
     if (data.valid) {
-        pl.sendMessage(endstone::ColorFormat::Red + "An account with this name already exists!");
+        pl.sendMessage(endstone::ColorFormat::Red + "Аккаунт с таким именем уже существует!");
         return false;
     }
 
@@ -56,7 +56,7 @@ bool AccountManager::createAccount(endstone::Player& pl, const std::string& name
     // Check max accounts limit from config
     const int max_accounts = Config::getInstance().max_accounts;
     if (data.accounts > max_accounts) {
-        pl.sendMessage(endstone::ColorFormat::Red + "You have already created the maximum number of accounts (" + std::to_string(max_accounts) + ")!");
+        pl.sendMessage(endstone::ColorFormat::Red + "Вы уже создали максимальное количество аккаунтов (" + std::to_string(max_accounts) + ")!");
         return false;
     }
 
@@ -94,7 +94,10 @@ bool AccountManager::createAccount(endstone::Player& pl, const std::string& name
     Database::storeAsAccount(data);
     Database::storeAsPlayer(data);
     
-    pl.sendMessage(endstone::ColorFormat::Green + "Account created successfully! You can now login with /login <username> <password>");
+    pl.sendMessage(endstone::ColorFormat::Green + "Аккаунт успешно создан! Теперь вы можете войти с помощью /login <ник> <пароль>");
+    
+    // Mark player as registered and unfreeze them
+    PlayerManager::markPlayerAsRegistered(&pl);
     
     if (create_new) {
         PlayerManager::reconnect(&pl);
@@ -117,21 +120,25 @@ bool AccountManager::loginAccount(endstone::Player& pl, const std::string& name,
     Database::loadAsAccount(data);
 
     if (!data.valid) {
-        pl.sendMessage(endstone::ColorFormat::Red + "Account not found!");
+        pl.sendMessage(endstone::ColorFormat::Red + "Аккаунт не найден!");
         return false;
     }
 
     // Hash the provided password and compare with stored hash
     std::string hashedPassword = SHA256::digest_str(trimmedPassword);
     if (data.password != hashedPassword) {
-        pl.sendMessage(endstone::ColorFormat::Red + "Incorrect password!");
+        pl.sendMessage(endstone::ColorFormat::Red + "Неверный пароль!");
         return false;
     }
 
     Database::storeAsPlayer(data);
     PlayerManager::setPlayerData(&pl, data);
     
-    pl.sendMessage(endstone::ColorFormat::Green + "Successfully logged in!");
+    pl.sendMessage(endstone::ColorFormat::Green + "Успешный вход в систему!");
+    
+    // Mark player as registered and unfreeze them
+    PlayerManager::markPlayerAsRegistered(&pl);
+    
     PlayerManager::reconnect(&pl);
     
     return true;
@@ -196,45 +203,45 @@ bool AccountManager::changePassword(endstone::Player& pl, const std::string& old
 }
 
 void AccountManager::showRegisterHelp(endstone::Player& pl) {
-    pl.sendMessage(endstone::ColorFormat::Yellow + "=== Account Registration ===");
-    pl.sendMessage(endstone::ColorFormat::Gold + "Usage: /register <username> <password> <confirm_password>");
-    pl.sendMessage(endstone::ColorFormat::Gray + "Requirements:");
-    pl.sendMessage(endstone::ColorFormat::Gray + "  • Username: 3-16 characters");
-    pl.sendMessage(endstone::ColorFormat::Gray + "  • Password: at least 4 characters");
-    pl.sendMessage(endstone::ColorFormat::Gray + "  • Password and confirmation must match");
+    pl.sendMessage(endstone::ColorFormat::Yellow + "=== Регистрация аккаунта ===");
+    pl.sendMessage(endstone::ColorFormat::Gold + "Использование: /register <ник> <пароль> <подтверждение_пароля>");
+    pl.sendMessage(endstone::ColorFormat::Gray + "Требования:");
+    pl.sendMessage(endstone::ColorFormat::Gray + "  • Имя пользователя: 3-16 символов");
+    pl.sendMessage(endstone::ColorFormat::Gray + "  • Пароль: не менее 4 символов");
+    pl.sendMessage(endstone::ColorFormat::Gray + "  • Пароль и подтверждение должны совпадать");
 }
 
 void AccountManager::showLoginHelp(endstone::Player& pl) {
-    pl.sendMessage(endstone::ColorFormat::Yellow + "=== Account Login ===");
-    pl.sendMessage(endstone::ColorFormat::Gold + "Usage: /login <username> <password>");
-    pl.sendMessage(endstone::ColorFormat::Gray + "Enter your account username and password to login.");
+    pl.sendMessage(endstone::ColorFormat::Yellow + "=== Вход в аккаунт ===");
+    pl.sendMessage(endstone::ColorFormat::Gold + "Использование: /login <ник> <пароль>");
+    pl.sendMessage(endstone::ColorFormat::Gray + "Введите имя пользователя и пароль для входа в аккаунт.");
 }
 
 void AccountManager::showAccountInfo(endstone::Player& pl) {
     const PlayerData& data = PlayerManager::getPlayerData(&pl);
     
-    pl.sendMessage(endstone::ColorFormat::Yellow + "=== Account Information ===");
+    pl.sendMessage(endstone::ColorFormat::Yellow + "=== Информация об аккаунте ===");
     
     if (data.valid && data.accounts > 0) {
-        pl.sendMessage(endstone::ColorFormat::Green + "Logged in as: " + data.name);
-        pl.sendMessage(endstone::ColorFormat::Gray + "Accounts created: " + std::to_string(data.accounts));
-        pl.sendMessage(endstone::ColorFormat::Gold + "Use /changepassword to change your password");
-        pl.sendMessage(endstone::ColorFormat::Gold + "Use /logout to logout from your account");
+        pl.sendMessage(endstone::ColorFormat::Green + "Вы вошли как: " + data.name);
+        pl.sendMessage(endstone::ColorFormat::Gray + "Создано аккаунтов: " + std::to_string(data.accounts));
+        pl.sendMessage(endstone::ColorFormat::Gold + "Используйте /changepassword для смены пароля");
+        pl.sendMessage(endstone::ColorFormat::Gold + "Используйте /logout для выхода из аккаунта");
     } else {
-        pl.sendMessage(endstone::ColorFormat::Red + "You are not logged in to any account!");
-        pl.sendMessage(endstone::ColorFormat::Gold + "Use /register to create an account");
-        pl.sendMessage(endstone::ColorFormat::Gold + "Use /login to login to an existing account");
+        pl.sendMessage(endstone::ColorFormat::Red + "Вы не вошли в аккаунт!");
+        pl.sendMessage(endstone::ColorFormat::Gold + "Используйте /register для создания аккаунта");
+        pl.sendMessage(endstone::ColorFormat::Gold + "Используйте /login для входа в существующий аккаунт");
     }
 }
 
 void AccountManager::showChangePasswordHelp(endstone::Player& pl) {
-    pl.sendMessage(endstone::ColorFormat::Yellow + "=== Change Password ===");
-    pl.sendMessage(endstone::ColorFormat::Gold + "Usage: /changepassword <old_password> <new_password> <confirm_new_password>");
-    pl.sendMessage(endstone::ColorFormat::Gray + "Requirements:");
-    pl.sendMessage(endstone::ColorFormat::Gray + "  • Must be logged in to an account");
-    pl.sendMessage(endstone::ColorFormat::Gray + "  • Old password must be correct");
-    pl.sendMessage(endstone::ColorFormat::Gray + "  • New password must be at least 4 characters");
-    pl.sendMessage(endstone::ColorFormat::Gray + "  • New password and confirmation must match");
+    pl.sendMessage(endstone::ColorFormat::Yellow + "=== Смена пароля ===");
+    pl.sendMessage(endstone::ColorFormat::Gold + "Использование: /changepassword <старый_пароль> <новый_пароль> <подтверждение_нового_пароля>");
+    pl.sendMessage(endstone::ColorFormat::Gray + "Требования:");
+    pl.sendMessage(endstone::ColorFormat::Gray + "  • Вы должны быть вошли в аккаунт");
+    pl.sendMessage(endstone::ColorFormat::Gray + "  • Старый пароль должен быть верным");
+    pl.sendMessage(endstone::ColorFormat::Gray + "  • Новый пароль должен быть не менее 4 символов");
+    pl.sendMessage(endstone::ColorFormat::Gray + "  • Новый пароль и подтверждение должны совпадать");
 }
 
 } // namespace PlayerRegister

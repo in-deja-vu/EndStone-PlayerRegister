@@ -90,12 +90,18 @@ public:
         // Load player data when they join
         PlayerRegister::PlayerManager::loadPlayer(&player);
         
-        // Check if player needs to login (not authenticated)
-        const PlayerRegister::PlayerData& data = PlayerRegister::PlayerManager::getPlayerData(&player);
-        if (!data.valid) {
-            player.sendMessage(endstone::ColorFormat::Yellow + "Please login or register to play!");
-            player.sendMessage(endstone::ColorFormat::Gold + "Use /register <username> <password> <confirm> to create an account");
-            player.sendMessage(endstone::ColorFormat::Gold + "Use /login <username> <password> to login to an existing account");
+        // Check if player needs to login (not registered)
+        if (!PlayerRegister::PlayerManager::isPlayerRegistered(&player)) {
+            // Player is already frozen by loadPlayer, just send initial message
+            player.sendMessage(endstone::ColorFormat::Yellow + "Добро пожаловать на сервер!");
+            player.sendMessage(endstone::ColorFormat::Gold + "Пожалуйста, зарегистрируйтесь или войдите в аккаунт чтобы играть.");
+            player.sendMessage(endstone::ColorFormat::Gold + "Используйте /register <ник> <пароль> <подтверждение> для регистрации");
+            player.sendMessage(endstone::ColorFormat::Gold + "Или /login <ник> <пароль> для входа в существующий аккаунт");
+        } else {
+            // Player is already registered, make sure they're not frozen
+            if (PlayerRegister::PlayerManager::isPlayerFrozen(&player)) {
+                PlayerRegister::PlayerManager::unfreezePlayer(&player);
+            }
         }
     }
 

@@ -5,6 +5,8 @@
 #include <endstone/endstone.hpp>
 #include <string>
 #include <unordered_map>
+#include <chrono>
+#include <memory>
 
 namespace PlayerRegister {
 
@@ -19,6 +21,11 @@ struct PlayerData {
     std::string fakeDBkey;
 
     bool valid = false;
+    bool isRegistered = false;
+    std::chrono::steady_clock::time_point joinTime;
+    bool isFrozen = false;
+    std::shared_ptr<endstone::SchedulerTask> kickTask;
+    std::shared_ptr<endstone::SchedulerTask> reminderTask;
 };
 
 class PlayerManager {
@@ -40,8 +47,22 @@ public:
     static std::string getId(endstone::Player* pl);
     static void reconnect(endstone::Player* pl);
 
+    // New registration system methods
+    static void freezePlayer(endstone::Player* pl);
+    static void unfreezePlayer(endstone::Player* pl);
+    static bool isPlayerFrozen(endstone::Player* pl);
+    static void startRegistrationTimer(endstone::Player* pl);
+    static void stopRegistrationTimer(endstone::Player* pl);
+    static void kickUnregisteredPlayer(endstone::Player* pl);
+    static void sendRegistrationReminder(endstone::Player* pl);
+    static bool isPlayerRegistered(endstone::Player* pl);
+    static void markPlayerAsRegistered(endstone::Player* pl);
+    static std::chrono::seconds getTimeUntilKick(endstone::Player* pl);
+
 private:
     static std::unordered_map<endstone::Player*, PlayerData> playerDataMap;
+    static const std::chrono::seconds KICK_DELAY;
+    static const std::chrono::seconds REMINDER_INTERVAL;
 };
 
 } // namespace PlayerRegister

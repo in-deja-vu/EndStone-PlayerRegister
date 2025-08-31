@@ -11,38 +11,38 @@ ENDSTONE_PLUGIN(/*name=*/"player_register", /*version=*/"1.4.0", /*main_class=*/
     authors = {"edshPC", "PlayerRegister Contributors"};
 
     command("register") //
-        .description("Register a new player account.")
-        .usages("/register <username> <password> <confirm_password>")
+        .description("Создать новый аккаунт.")
+        .usages("/register <ник> <пароль> <подтверждение_пароля>")
         .permissions("player_register.command.register");
 
     command("login") //
-        .description("Login to your player account.")
-        .usages("/login <username> <password>")
+        .description("Войти в аккаунт.")
+        .usages("/login <ник> <пароль>")
         .permissions("player_register.command.login");
 
     command("changepassword") //
-        .description("Change your account password.")
-        .usages("/changepassword <old_password> <new_password> <confirm_new_password>")
+        .description("Сменить пароль аккаунта.")
+        .usages("/changepassword <старый_пароль> <новый_пароль> <подтверждение_нового_пароля>")
         .aliases("changepass", "cp")
         .permissions("player_register.command.changepassword");
 
     command("account") //
-        .description("Account management and information.")
+        .description("Управление аккаунтом и информация.")
         .usages("/account [info]")
         .permissions("player_register.command.account");
 
     command("resetpassword") //
-        .description("Reset a player's password (Operator only).")
-        .usages("/resetpassword <username>")
+        .description("Сбросить пароль игрока (только для операторов).")
+        .usages("/resetpassword <ник>")
         .permissions("player_register.command.resetpassword");
 
     command("logout") //
-        .description("Logout from your current account.")
+        .description("Выйти из текущего аккаунта.")
         .usages("/logout")
         .permissions("player_register.command.logout");
 
     permission("player_register.command")
-        .description("Allow users to use all commands provided by the player register plugin")
+        .description("Разрешить пользователям использовать все команды плагина регистрации")
         .children("player_register.command.register", true)
         .children("player_register.command.login", true)
         .children("player_register.command.changepassword", true)
@@ -50,26 +50,26 @@ ENDSTONE_PLUGIN(/*name=*/"player_register", /*version=*/"1.4.0", /*main_class=*/
         .children("player_register.command.logout", true);
 
     permission("player_register.command.register")
-        .description("Allow users to register new accounts")
+        .description("Разрешить пользователям создавать новые аккаунты")
         .default_(endstone::PermissionDefault::True);
 
     permission("player_register.command.login")
-        .description("Allow users to login to their accounts")
+        .description("Разрешить пользователям входить в свои аккаунты")
         .default_(endstone::PermissionDefault::True);
 
     permission("player_register.command.changepassword")
-        .description("Allow users to change their passwords")
+        .description("Разрешить пользователям менять свои пароли")
         .default_(endstone::PermissionDefault::True);
 
     permission("player_register.command.account")
-        .description("Allow users to view account information")
+        .description("Разрешить пользователям просматривать информацию об аккаунте")
         .default_(endstone::PermissionDefault::True);
 
     permission("player_register.command.logout")
-        .description("Allow users to logout from their accounts")
+        .description("Разрешить пользователям выходить из своих аккаунтов")
         .default_(endstone::PermissionDefault::True);
 
     permission("player_register.command.resetpassword")
-        .description("Allow operators to reset player passwords")
+        .description("Разрешить операторам сбрасывать пароли игроков")
         .default_(endstone::PermissionDefault::Operator);
 }
