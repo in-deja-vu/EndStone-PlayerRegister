@@ -39,12 +39,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE include)
 # Add nlohmann_json include directory
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
-# Override any filesystem library linking for Windows
-if(WIN32)
-    # For MSVC, explicitly clear and reset link libraries to remove stdc++fs
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        LINK_LIBRARIES ""
-    )
-    # Link only with what we actually need
-    target_link_libraries(${PROJECT_NAME} PRIVATE _deps::fmt)
-endif()
+# Let endstone_add_plugin handle all necessary linking
+# No need to specify additional libraries manually
