@@ -4,21 +4,11 @@
 
 #include "sha256.h"
 #include "config.h"
+#include "database.h"
 #include <endstone/endstone.hpp>
 #include <algorithm>
 #include <random>
 #include <sstream>
-
-// Forward declarations for database functions
-namespace PlayerRegister {
-namespace Database {
-    void storeAsPlayer(const PlayerData& data);
-    void loadAsPlayer(PlayerData& data);
-    bool removePlayer(const std::string& id);
-    void storeAsAccount(const PlayerData& data);
-    void loadAsAccount(PlayerData& data);
-}
-}
 
 namespace PlayerRegister {
 
@@ -51,7 +41,9 @@ bool AccountManager::createAccount(endstone::Player& pl, const std::string& name
         return false;
     }
 
-    PlayerData data(PlayerManager::getId(&pl), trimmedName);
+    PlayerData data;
+    data.id = PlayerManager::getId(&pl);
+    data.name = trimmedName;
     Database::loadAsAccount(data);
     
     if (data.valid) {
@@ -119,7 +111,9 @@ bool AccountManager::loginAccount(endstone::Player& pl, const std::string& name,
     trimString(trimmedName);
     trimString(trimmedPassword);
 
-    PlayerData data(PlayerManager::getId(&pl), trimmedName);
+    PlayerData data;
+    data.id = PlayerManager::getId(&pl);
+    data.name = trimmedName;
     Database::loadAsAccount(data);
 
     if (!data.valid) {
@@ -153,7 +147,8 @@ bool AccountManager::changePassword(const std::string& name, const std::string& 
         return false;
     }
 
-    PlayerData data{.name = trimmedName};
+    PlayerData data;
+    data.name = trimmedName;
     Database::loadAsAccount(data);
 
     if (!data.valid) {
