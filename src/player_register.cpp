@@ -12,28 +12,28 @@ ENDSTONE_PLUGIN(/*name=*/"player_register", /*version=*/"1.4.0", /*main_class=*/
 
     command("register") //
         .description("Создать новый аккаунт.")
-        .usages("/register <ник> <пароль> <подтверждение_пароля>")
+        .usages("/register <ник: string> <пароль: string> <подтверждение: string>")
         .permissions("player_register.command.register");
 
     command("login") //
         .description("Войти в аккаунт.")
-        .usages("/login <ник> <пароль>")
+        .usages("/login <ник: string> <пароль: string>")
         .permissions("player_register.command.login");
 
     command("changepassword") //
         .description("Сменить пароль аккаунта.")
-        .usages("/changepassword <старый_пароль> <новый_пароль> <подтверждение_нового_пароля>")
+        .usages("/changepassword <старый_пароль: string> <новый_пароль: string> <подтверждение: string>")
         .aliases("changepass", "cp")
         .permissions("player_register.command.changepassword");
 
     command("account") //
         .description("Управление аккаунтом и информация.")
-        .usages("/account [info]")
+        .usages("/account [info: string]")
         .permissions("player_register.command.account");
 
     command("resetpassword") //
         .description("Сбросить пароль игрока (только для операторов).")
-        .usages("/resetpassword <ник>")
+        .usages("/resetpassword <ник: string>")
         .permissions("player_register.command.resetpassword");
 
     command("logout") //
