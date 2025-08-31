@@ -24,6 +24,12 @@ jobs:
       - name: Set up CMake and Ninja
         uses: lukka/get-cmake@latest
 
+      - name: Install nlohmann/json
+        run: |
+          # Download nlohmann/json single header
+          mkdir -p include/nlohmann
+          curl -L -o include/nlohmann/json.hpp https://github.com/nlohmann/json/releases/download/v3.11.3/json.hpp
+
       - name: Build with CMake
         run: |
           mkdir build
@@ -34,7 +40,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: example-plugin-windows
+          name: player-register-windows
           path: |
             ./build/endstone_*.dll
             ./build/endstone_*.pdb
@@ -63,6 +69,12 @@ jobs:
       - name: Set up CMake and Ninja
         uses: lukka/get-cmake@latest
 
+      - name: Install nlohmann/json
+        run: |
+          # Download nlohmann/json single header
+          mkdir -p include/nlohmann
+          curl -L -o include/nlohmann/json.hpp https://github.com/nlohmann/json/releases/download/v3.11.3/json.hpp
+
       - name: Build with CMake
         run: |
           mkdir build
@@ -73,5 +85,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: example-plugin-linux
+          name: player-register-linux
           path: ./build/endstone_*.so
