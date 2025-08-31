@@ -9,8 +9,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(WIN32)
     # Enable filesystem linking for Windows
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0601")
-    add_definitions(-DWIN32_LEAN_AND_MEAN)
-    add_definitions(-DNOMINMAX)
+    # Note: WIN32_LEAN_AND_MEAN and NOMINMAX are already defined by Endstone
+    # No need to define them here to avoid redefinition warnings
+    # For MSVC, filesystem is part of the standard library, no separate lib needed
+    set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif()
 
 include(FetchContent)
@@ -37,10 +39,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE include)
 # Add nlohmann_json include directory
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
-# Link with required libraries
-# nlohmann_json is header-only, no linking needed
-
-# Windows-specific filesystem linking
+# Override any filesystem library linking for Windows
 if(WIN32)
-    target_link_libraries(${PROJECT_NAME} PRIVATE stdc++fs)
+    # For MSVC, explicitly clear and reset link libraries to remove stdc++fs
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        LINK_LIBRARIES ""
+    )
+    # Link only with what we actually need
+    target_link_libraries(${PROJECT_NAME} PRIVATE _deps::fmt)
 endif()
