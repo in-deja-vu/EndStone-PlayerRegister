@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <endstone/logger.h>
 #include <algorithm>
+#include <sstream>
 
 namespace PlayerRegister {
 
@@ -14,22 +15,22 @@ std::string Database::dataDir_;
 bool Database::init(const std::string& dataDir) {
     dataDir_ = dataDir;
     
-    // Create directories if they don't exist
-    std::string playersDir = dataDir_ + "/players";
-    std::string accountsDir = dataDir_ + "/accounts";
+    // Create directories if they don't exist using filesystem::path for cross-platform compatibility
+    std::filesystem::path playersPath = std::filesystem::path(dataDir_) / "players";
+    std::filesystem::path accountsPath = std::filesystem::path(dataDir_) / "accounts";
     
-    ensureDirectoryExists(playersDir);
-    ensureDirectoryExists(accountsDir);
+    ensureDirectoryExists(playersPath.string());
+    ensureDirectoryExists(accountsPath.string());
     
     return true;
 }
 
 std::string Database::getPlayerFilePath(const std::string& id) {
-    return dataDir_ + "/players/" + id + ".json";
+    return (std::filesystem::path(dataDir_) / "players" / (id + ".json")).string();
 }
 
 std::string Database::getAccountFilePath(const std::string& name) {
-    return dataDir_ + "/accounts/" + name + ".json";
+    return (std::filesystem::path(dataDir_) / "accounts" / (name + ".json")).string();
 }
 
 void Database::ensureDirectoryExists(const std::string& path) {

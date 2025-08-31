@@ -5,19 +5,20 @@
 #include <fstream>
 #include <filesystem>
 #include <nlohmann/json.hpp>
+#include <sstream>
 
 namespace PlayerRegister {
 
 Config Config::instance;
 
 bool Config::init(const std::string& configDir) {
-    std::string configPath = configDir + "/config.json";
+    std::filesystem::path configPath = std::filesystem::path(configDir) / "config.json";
     
     // Create config directory if it doesn't exist
     std::filesystem::create_directories(configDir);
     
-    if (!loadConfig(configPath)) {
-        return saveConfig(configPath);
+    if (!loadConfig(configPath.string())) {
+        return saveConfig(configPath.string());
     }
     
     return true;

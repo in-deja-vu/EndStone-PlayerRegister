@@ -7,6 +7,7 @@
 #include <endstone/endstone.hpp>
 #include <algorithm>
 #include <random>
+#include <sstream>
 
 // Forward declarations for database functions
 namespace PlayerRegister {
