@@ -4,13 +4,13 @@
 
 #include <endstone/endstone.hpp>
 
-class ExampleListener {
+class PlayerRegisterListener {
 public:
-    explicit ExampleListener(endstone::Plugin &plugin) : plugin_(plugin) {}
+    explicit PlayerRegisterListener(endstone::Plugin &plugin) : plugin_(plugin) {}
 
     void onServerLoad(endstone::ServerLoadEvent &event)
     {
-        plugin_.getLogger().info("ServerLoadEvent is passed to ExampleListener::onServerLoad");
+        plugin_.getLogger().info("ServerLoadEvent is passed to PlayerRegisterListener::onServerLoad");
     }
 
 private:
