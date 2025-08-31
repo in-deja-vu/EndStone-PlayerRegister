@@ -6,6 +6,7 @@
 #include "player_register_command.h"
 #include "config.h"
 #include "database.h"
+#include "player_manager.h"
 
 #include <endstone/endstone.hpp>
 #include <memory>
@@ -35,6 +36,9 @@ public:
     void onEnable() override
     {
         getLogger().info("PlayerRegister plugin enabled!");
+
+        // Set plugin reference for PlayerManager
+        PlayerRegister::PlayerManager::setPlugin(this);
 
         // Set up command executors for all commands
         if (auto *command = getCommand("register")) {

@@ -9,8 +9,13 @@
 namespace PlayerRegister {
 
 std::unordered_map<endstone::Player*, PlayerData> PlayerManager::playerDataMap;
+endstone::Plugin* PlayerManager::plugin_ = nullptr;
 const std::chrono::seconds PlayerManager::KICK_DELAY = std::chrono::seconds(140); // 2 минуты 20 секунд
 const std::chrono::seconds PlayerManager::REMINDER_INTERVAL = std::chrono::seconds(60); // 1 минута
+
+void PlayerManager::setPlugin(endstone::Plugin* plugin) {
+    plugin_ = plugin;
+}
 
 endstone::UUID PlayerManager::getRealUUID(endstone::Player* pl) {
     return pl->getUniqueId();
@@ -112,7 +117,7 @@ void PlayerManager::freezePlayer(endstone::Player* pl) {
         
         // Teleport player to a high location (in the sky)
         auto location = pl->getLocation();
-        location.y = 256.0f; // High in the sky
+        location.setY(256.0f); // High in the sky
         pl->teleport(location);
         
         pl->sendMessage(endstone::ColorFormat::Red + "Вы заморожены! Пожалуйста, зарегистрируйтесь чтобы играть.");
@@ -132,7 +137,7 @@ void PlayerManager::unfreezePlayer(endstone::Player* pl) {
         
         // Teleport player to ground level
         auto location = pl->getLocation();
-        location.y = 64.0f; // Ground level
+        location.setY(64.0f); // Ground level
         pl->teleport(location);
         
         pl->sendMessage(endstone::ColorFormat::Green + "Вы успешно разморожены! Добро пожаловать на сервер!");
@@ -154,21 +159,25 @@ void PlayerManager::startRegistrationTimer(endstone::Player* pl) {
     stopRegistrationTimer(pl);
     
     // Create kick task
-    data.kickTask = pl->getServer().getScheduler().runTaskLater(
-        [pl]() {
-            kickUnregisteredPlayer(pl);
-        },
-        KICK_DELAY.count() * 20 // Convert to ticks (20 ticks = 1 second)
-    );
-    
-    // Create reminder task
-    data.reminderTask = pl->getServer().getScheduler().runTaskTimer(
-        [pl]() {
-            sendRegistrationReminder(pl);
-        },
-        REMINDER_INTERVAL.count() * 20, // Initial delay
-        REMINDER_INTERVAL.count() * 20  // Repeat interval
-    );
+    if (plugin_) {
+        data.kickTask = plugin_->getServer().getScheduler().runTaskLater(
+            *plugin_,
+            [pl]() {
+                kickUnregisteredPlayer(pl);
+            },
+            KICK_DELAY.count() * 20 // Convert to ticks (20 ticks = 1 second)
+        );
+        
+        // Create reminder task
+        data.reminderTask = plugin_->getServer().getScheduler().runTaskTimer(
+            *plugin_,
+            [pl]() {
+                sendRegistrationReminder(pl);
+            },
+            REMINDER_INTERVAL.count() * 20, // Initial delay
+            REMINDER_INTERVAL.count() * 20  // Repeat interval
+        );
+    }
 }
 
 void PlayerManager::stopRegistrationTimer(endstone::Player* pl) {

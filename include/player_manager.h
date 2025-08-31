@@ -24,12 +24,13 @@ struct PlayerData {
     bool isRegistered = false;
     std::chrono::steady_clock::time_point joinTime;
     bool isFrozen = false;
-    std::shared_ptr<endstone::SchedulerTask> kickTask;
-    std::shared_ptr<endstone::SchedulerTask> reminderTask;
+    std::shared_ptr<endstone::Task> kickTask;
+    std::shared_ptr<endstone::Task> reminderTask;
 };
 
 class PlayerManager {
 public:
+    static void setPlugin(endstone::Plugin* plugin);
     static endstone::UUID getRealUUID(endstone::Player* pl);
     static endstone::UUID getFakeUUID(endstone::Player* pl);
 
@@ -60,6 +61,7 @@ public:
     static std::chrono::seconds getTimeUntilKick(endstone::Player* pl);
 
 private:
+    static endstone::Plugin* plugin_;
     static std::unordered_map<endstone::Player*, PlayerData> playerDataMap;
     static const std::chrono::seconds KICK_DELAY;
     static const std::chrono::seconds REMINDER_INTERVAL;
