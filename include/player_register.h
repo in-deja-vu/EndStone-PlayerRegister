@@ -18,13 +18,13 @@ public:
         getLogger().info("PlayerRegister plugin loading...");
         
         // Initialize configuration
-        if (!PlayerRegister::Config::init(getDataFolder())) {
+        if (!PlayerRegister::Config::init(getDataFolder().string())) {
             getLogger().error("Failed to initialize configuration!");
             return;
         }
         
         // Initialize database
-        if (!PlayerRegister::Database::init(getDataFolder())) {
+        if (!PlayerRegister::Database::init(getDataFolder().string())) {
             getLogger().error("Failed to initialize database!");
             return;
         }

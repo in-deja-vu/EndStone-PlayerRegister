@@ -5,6 +5,14 @@ project(player_register CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Windows-specific settings
+if(WIN32)
+    # Enable filesystem linking for Windows
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_WIN32_WINNT=0x0601")
+    add_definitions(-DWIN32_LEAN_AND_MEAN)
+    add_definitions(-DNOMINMAX)
+endif()
+
 include(FetchContent)
 FetchContent_Declare(
         endstone
@@ -31,3 +39,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 # Link with required libraries
 # nlohmann_json is header-only, no linking needed
+
+# Windows-specific filesystem linking
+if(WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE stdc++fs)
+endif()
