@@ -8,11 +8,11 @@ namespace PlayerRegister {
 
 std::unordered_map<endstone::Player*, PlayerData> PlayerManager::playerDataMap;
 
-const endstone::UUID& PlayerManager::getRealUUID(endstone::Player* pl) {
+endstone::UUID PlayerManager::getRealUUID(endstone::Player* pl) {
     return pl->getUniqueId();
 }
 
-const endstone::UUID& PlayerManager::getFakeUUID(endstone::Player* pl) {
+endstone::UUID PlayerManager::getFakeUUID(endstone::Player* pl) {
     auto it = playerDataMap.find(pl);
     if (it != playerDataMap.end() && it->second.valid) {
         return it->second.fakeUUID;
@@ -66,6 +66,10 @@ endstone::Player* PlayerManager::getPlayerByUUID(const endstone::UUID& uuid) {
 
 const std::unordered_map<endstone::Player*, PlayerData>& PlayerManager::getAllData() {
     return playerDataMap;
+}
+
+void PlayerManager::clearAllData() {
+    playerDataMap.clear();
 }
 
 std::string PlayerManager::getId(endstone::Player* pl) {

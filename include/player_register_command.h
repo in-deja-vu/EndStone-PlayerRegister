@@ -5,6 +5,7 @@
 #include <endstone/endstone.hpp>
 #include <string>
 #include "account_manager.h"
+#include "database.h"
 
 class PlayerRegisterCommandExecutor : public endstone::CommandExecutor {
 public:
@@ -45,12 +46,11 @@ public:
 private:
     bool handleRegister(endstone::CommandSender &sender, const std::vector<std::string> &args)
     {
-        if (!sender.isPlayer()) {
+        auto* player = sender.asPlayer();
+        if (!player) {
             sender.sendErrorMessage("This command can only be used by players!");
             return true;
         }
-
-        auto* player = static_cast<endstone::Player*>(&sender);
 
         if (args.size() < 3) {
             PlayerRegister::AccountManager::showRegisterHelp(*player);
@@ -71,12 +71,11 @@ private:
 
     bool handleLogin(endstone::CommandSender &sender, const std::vector<std::string> &args)
     {
-        if (!sender.isPlayer()) {
+        auto* player = sender.asPlayer();
+        if (!player) {
             sender.sendErrorMessage("This command can only be used by players!");
             return true;
         }
-
-        auto* player = static_cast<endstone::Player*>(&sender);
 
         if (args.size() < 2) {
             PlayerRegister::AccountManager::showLoginHelp(*player);
@@ -91,12 +90,11 @@ private:
 
     bool handleChangePassword(endstone::CommandSender &sender, const std::vector<std::string> &args)
     {
-        if (!sender.isPlayer()) {
+        auto* player = sender.asPlayer();
+        if (!player) {
             sender.sendErrorMessage("This command can only be used by players!");
             return true;
         }
-
-        auto* player = static_cast<endstone::Player*>(&sender);
 
         if (args.size() < 3) {
             PlayerRegister::AccountManager::showChangePasswordHelp(*player);
@@ -117,12 +115,11 @@ private:
 
     bool handleAccount(endstone::CommandSender &sender, const std::vector<std::string> &args)
     {
-        if (!sender.isPlayer()) {
+        auto* player = sender.asPlayer();
+        if (!player) {
             sender.sendErrorMessage("This command can only be used by players!");
             return true;
         }
-
-        auto* player = static_cast<endstone::Player*>(&sender);
 
         if (args.empty()) {
             PlayerRegister::AccountManager::showAccountInfo(*player);
@@ -147,7 +144,8 @@ private:
 
     bool handleResetPassword(endstone::CommandSender &sender, const std::vector<std::string> &args)
     {
-        if (!sender.isOp()) {
+        // Check if sender has operator permissions
+        if (!sender.hasPermission("endstone.command.op")) {
             sender.sendErrorMessage("This command can only be used by operators!");
             return true;
         }
@@ -173,12 +171,11 @@ private:
 
     bool handleLogout(endstone::CommandSender &sender, const std::vector<std::string> &args)
     {
-        if (!sender.isPlayer()) {
+        auto* player = sender.asPlayer();
+        if (!player) {
             sender.sendErrorMessage("This command can only be used by players!");
             return true;
         }
-
-        auto* player = static_cast<endstone::Player*>(&sender);
         
         // Remove player data to logout
         if (PlayerRegister::Database::removePlayer(PlayerRegister::PlayerManager::getId(player))) {

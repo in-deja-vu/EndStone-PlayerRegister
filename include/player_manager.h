@@ -23,8 +23,8 @@ struct PlayerData {
 
 class PlayerManager {
 public:
-    static const endstone::UUID& getRealUUID(endstone::Player* pl);
-    static const endstone::UUID& getFakeUUID(endstone::Player* pl);
+    static endstone::UUID getRealUUID(endstone::Player* pl);
+    static endstone::UUID getFakeUUID(endstone::Player* pl);
 
     static std::string getFakeDBkey(const std::string& real);
     static void setFakeDBkey(endstone::Player* pl);
@@ -36,6 +36,7 @@ public:
     static const PlayerData& getPlayerData(endstone::Player* pl);
     static endstone::Player* getPlayerByUUID(const endstone::UUID& uuid);
     static const std::unordered_map<endstone::Player*, PlayerData>& getAllData();
+    static void clearAllData();
     static std::string getId(endstone::Player* pl);
     static void reconnect(endstone::Player* pl);
 

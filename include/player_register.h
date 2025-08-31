@@ -78,34 +78,34 @@ public:
         getLogger().info("PlayerRegister plugin disabled!");
         
         // Clean up player data
-        PlayerRegister::PlayerManager::getAllData().clear();
+        PlayerRegister::PlayerManager::clearAllData();
     }
 
     // Event handlers
     void onPlayerJoin(endstone::PlayerJoinEvent &event)
     {
-        auto* player = event.getPlayer();
-        getLogger().info("Player joined: {}", player->getName());
+        auto& player = event.getPlayer();
+        getLogger().info("Player joined: {}", player.getName());
         
         // Load player data when they join
-        PlayerRegister::PlayerManager::loadPlayer(player);
+        PlayerRegister::PlayerManager::loadPlayer(&player);
         
         // Check if player needs to login (not authenticated)
-        const PlayerRegister::PlayerData& data = PlayerRegister::PlayerManager::getPlayerData(player);
+        const PlayerRegister::PlayerData& data = PlayerRegister::PlayerManager::getPlayerData(&player);
         if (!data.valid) {
-            player->sendMessage(endstone::ColorFormat::Yellow + "Please login or register to play!");
-            player->sendMessage(endstone::ColorFormat::Gold + "Use /register <username> <password> <confirm> to create an account");
-            player->sendMessage(endstone::ColorFormat::Gold + "Use /login <username> <password> to login to an existing account");
+            player.sendMessage(endstone::ColorFormat::Yellow + "Please login or register to play!");
+            player.sendMessage(endstone::ColorFormat::Gold + "Use /register <username> <password> <confirm> to create an account");
+            player.sendMessage(endstone::ColorFormat::Gold + "Use /login <username> <password> to login to an existing account");
         }
     }
 
     void onPlayerQuit(endstone::PlayerQuitEvent &event)
     {
-        auto* player = event.getPlayer();
-        getLogger().info("Player quit: {}", player->getName());
+        auto& player = event.getPlayer();
+        getLogger().info("Player quit: {}", player.getName());
         
         // Clean up player data when they leave
-        PlayerRegister::PlayerManager::unloadPlayer(player);
+        PlayerRegister::PlayerManager::unloadPlayer(&player);
     }
 
     void onServerLoad(endstone::ServerLoadEvent &event)

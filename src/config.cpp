@@ -1,6 +1,6 @@
 // Copyright (c) 2024, The Endstone Project. (https://endstone.dev) All Rights Reserved.
 
-#include "include/config.h"
+#include "config.h"
 
 #include <fstream>
 #include <filesystem>

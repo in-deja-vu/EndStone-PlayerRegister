@@ -3,8 +3,10 @@
 #include "account_manager.h"
 
 #include "sha256.h"
+#include "config.h"
 #include <endstone/endstone.hpp>
 #include <algorithm>
+#include <random>
 
 // Forward declarations for database functions
 namespace PlayerRegister {
@@ -59,7 +61,7 @@ bool AccountManager::createAccount(endstone::Player& pl, const std::string& name
     data.accounts = PlayerManager::getPlayerData(&pl).accounts + 1;
     
     // Check max accounts limit from config
-    const int max_accounts = CONF.max_accounts;
+    const int max_accounts = Config::getInstance().max_accounts;
     if (data.accounts > max_accounts) {
         pl.sendMessage(endstone::ColorFormat::Red + "You have already created the maximum number of accounts (" + std::to_string(max_accounts) + ")!");
         return false;
@@ -69,8 +71,21 @@ bool AccountManager::createAccount(endstone::Player& pl, const std::string& name
     data.password = SHA256::digest_str(trimmedPassword);
     
     if (create_new) {
-        data.fakeUUID = endstone::UUID::random();
-        data.fakeDBkey = "player_server_" + endstone::UUID::random().str();
+        // Generate a random UUID using a simple method
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<uint64_t> dis;
+        uint64_t high = dis(gen);
+        uint64_t low = dis(gen);
+        
+        // Create UUID by filling the byte array
+        endstone::UUID uuid;
+        for (int i = 0; i < 8; i++) {
+            uuid.data[i] = (high >> (8 * (7 - i))) & 0xFF;
+            uuid.data[8 + i] = (low >> (8 * (7 - i))) & 0xFF;
+        }
+        data.fakeUUID = uuid;
+        data.fakeDBkey = "player_server_" + data.fakeUUID.str();
     } else {
         data.fakeUUID = PlayerManager::getFakeUUID(&pl);
         // Endstone doesn't have XUID like LeviLamina, so we'll use a placeholder

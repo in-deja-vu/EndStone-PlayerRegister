@@ -26,6 +26,8 @@ set(SOURCES
 endstone_add_plugin(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
+# Add nlohmann_json include directory
+target_include_directories(${PROJECT_NAME} PRIVATE include)
+
 # Link with required libraries
-find_package(nlohmann_json CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE nlohmann_json::nlohmann_json)
+# nlohmann_json is header-only, no linking needed
