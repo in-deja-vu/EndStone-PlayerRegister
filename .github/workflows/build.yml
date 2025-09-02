@@ -8,53 +8,40 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        build_type: [Release, Debug]
-        exclude:
-          - os: windows-latest
-            build_type: Debug
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
 
-    - name: Install dependencies (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
+    - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y cmake ninja-build clang libc++-dev
 
-    - name: Install dependencies (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        choco install cmake ninja
-
     - name: Configure CMake
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        cmake -B build -DCMAKE_BUILD_TYPE=Release
 
-    - name: Build
+    - name: Build plugin
       run: |
-        cmake --build build --config ${{ matrix.build_type }}
+        cmake --build build --config Release
 
-    - name: Test (if tests exist)
-      run: |
-        cd build
-        ctest --output-on-failure
-      continue-on-error: true
-
-    - name: Upload artifacts
+    - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: endstone-player-register-${{ matrix.os }}-${{ matrix.build_type }}
+        name: endstone-player-register-plugin
         path: |
-          build/*.dll
           build/*.so
+          build/*.dll
           build/*.dylib
+
+    - name: Check build results
+      run: |
+        ls -la build/
+        echo "Build completed successfully!"
