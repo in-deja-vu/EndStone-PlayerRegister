@@ -1,0 +1,66 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up CMake
+      uses: jwlawson/actions-setup-cmake@v2.0.2
+      with:
+        cmake-version: '3.20.x'
+        
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang-15 libc++-dev libc++abi-dev ninja-build
+        
+    - name: Configure CMake
+      run: |
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -G "Ninja Multi-Config"
+        
+    - name: Build
+      run: |
+        cmake --build ${{github.workspace}}/build --config Release
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        body: |
+          ## EndStone-PlayerRegister Plugin Release
+          
+          This release contains the compiled plugin files for EndStone-PlayerRegister.
+          
+          ### Installation
+          1. Download the appropriate file for your system:
+             - `libplayer_register.so` - Linux
+             - `player_register.dll` - Windows
+          2. Place the file in the `plugins/` directory of your EndStone server
+          3. Restart your server
+          
+          ### Features
+          - Complete player registration and authentication system
+          - 150-second authentication timer
+          - Effect-based player isolation
+          - Chat and command filtering
+          - Secure password hashing
+          
+          ### Requirements
+          - EndStone Core v0.10 or higher
+          - Minecraft Bedrock compatible server
+          
+        files: |
+          build/*.so
+          build/*.dll
+        draft: false
+        prerelease: false
