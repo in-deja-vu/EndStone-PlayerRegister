@@ -52,21 +52,20 @@ private:
             return true;
         }
 
-        if (args.size() < 3) {
+        if (args.size() < 2) {
             PlayerRegister::AccountManager::showRegisterHelp(*player);
             return true;
         }
 
-        const std::string& username = args[0];
-        const std::string& password = args[1];
-        const std::string& confirmPassword = args[2];
+        const std::string& password = args[0];
+        const std::string& confirmPassword = args[1];
 
         if (password != confirmPassword) {
             sender.sendErrorMessage("Пароли не совпадают!");
             return true;
         }
 
-        return PlayerRegister::AccountManager::createAccount(*player, username, password);
+        return PlayerRegister::AccountManager::createAccount(*player, player->getName(), password);
     }
 
     bool handleLogin(endstone::CommandSender &sender, const std::vector<std::string> &args)
@@ -77,15 +76,14 @@ private:
             return true;
         }
 
-        if (args.size() < 2) {
+        if (args.size() < 1) {
             PlayerRegister::AccountManager::showLoginHelp(*player);
             return true;
         }
 
-        const std::string& username = args[0];
-        const std::string& password = args[1];
+        const std::string& password = args[0];
 
-        return PlayerRegister::AccountManager::loginAccount(*player, username, password);
+        return PlayerRegister::AccountManager::loginAccount(*player, player->getName(), password);
     }
 
     bool handleChangePassword(endstone::CommandSender &sender, const std::vector<std::string> &args)
@@ -133,8 +131,8 @@ private:
         } else {
             sender.sendMessage(endstone::ColorFormat::Yellow + "Команды управления аккаунтом:");
             sender.sendMessage(endstone::ColorFormat::Gold + "/account - Показать информацию об аккаунте");
-            sender.sendMessage(endstone::ColorFormat::Gold + "/register <ник> <пароль> <подтверждение> - Создать аккаунт");
-            sender.sendMessage(endstone::ColorFormat::Gold + "/login <ник> <пароль> - Войти в аккаунт");
+            sender.sendMessage(endstone::ColorFormat::Gold + "/register <пароль> <подтверждение> - Создать аккаунт");
+            sender.sendMessage(endstone::ColorFormat::Gold + "/login <пароль> - Войти в аккаунт");
             sender.sendMessage(endstone::ColorFormat::Gold + "/changepassword <старый> <новый> <подтверждение> - Сменить пароль");
             sender.sendMessage(endstone::ColorFormat::Gold + "/logout - Выйти из аккаунта");
         }

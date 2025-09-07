@@ -31,6 +31,7 @@ set(SOURCES
     src/database.cpp
     src/config.cpp
     src/sha256.cpp
+    src/player_register_listener.cpp
 )
 
 endstone_add_plugin(${PROJECT_NAME} ${SOURCES})

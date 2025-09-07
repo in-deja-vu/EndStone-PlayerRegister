@@ -26,28 +26,22 @@ bool AccountManager::validateUsername(const std::string& username) {
 }
 
 bool AccountManager::createAccount(endstone::Player& pl, const std::string& name, const std::string& password, bool create_new) {
-    std::string trimmedName = name;
     std::string trimmedPassword = password;
-    trimString(trimmedName);
     trimString(trimmedPassword);
-
-    if (!validateUsername(trimmedName)) {
-        pl.sendMessage(endstone::ColorFormat::Red + "Имя пользователя должно быть от 3 до 16 символов!");
-        return false;
-    }
 
     if (!validatePassword(trimmedPassword)) {
         pl.sendMessage(endstone::ColorFormat::Red + "Пароль должен быть не менее 4 символов!");
         return false;
     }
 
+    // Check if account with player name already exists
     PlayerData data;
     data.id = PlayerManager::getId(&pl);
-    data.name = trimmedName;
+    data.name = pl.getName(); // Use player's actual name instead of provided name
     Database::loadAsAccount(data);
     
     if (data.valid) {
-        pl.sendMessage(endstone::ColorFormat::Red + "Аккаунт с таким именем уже существует!");
+        pl.sendMessage(endstone::ColorFormat::Red + "Аккаунт с таким никнеймом (" + pl.getName() + ") уже существует.");
         return false;
     }
 
@@ -94,10 +88,10 @@ bool AccountManager::createAccount(endstone::Player& pl, const std::string& name
     Database::storeAsAccount(data);
     Database::storeAsPlayer(data);
     
-    pl.sendMessage(endstone::ColorFormat::Green + "Аккаунт успешно создан! Теперь вы можете войти с помощью /login <ник> <пароль>");
+    pl.sendMessage(endstone::ColorFormat::Green + "Аккаунт успешно создан!");
     
-    // Mark player as registered and unfreeze them
-    PlayerManager::markPlayerAsRegistered(&pl);
+    // Complete authorization process
+    PlayerManager::completeAuthorizationProcess(&pl);
     
     if (create_new) {
         PlayerManager::reconnect(&pl);
@@ -109,14 +103,12 @@ bool AccountManager::createAccount(endstone::Player& pl, const std::string& name
 }
 
 bool AccountManager::loginAccount(endstone::Player& pl, const std::string& name, const std::string& password) {
-    std::string trimmedName = name;
     std::string trimmedPassword = password;
-    trimString(trimmedName);
     trimString(trimmedPassword);
 
     PlayerData data;
     data.id = PlayerManager::getId(&pl);
-    data.name = trimmedName;
+    data.name = pl.getName(); // Use player's actual name
     Database::loadAsAccount(data);
 
     if (!data.valid) {
@@ -136,8 +128,8 @@ bool AccountManager::loginAccount(endstone::Player& pl, const std::string& name,
     
     pl.sendMessage(endstone::ColorFormat::Green + "Успешный вход в систему!");
     
-    // Mark player as registered and unfreeze them
-    PlayerManager::markPlayerAsRegistered(&pl);
+    // Complete authorization process
+    PlayerManager::completeAuthorizationProcess(&pl);
     
     PlayerManager::reconnect(&pl);
     
@@ -204,17 +196,18 @@ bool AccountManager::changePassword(endstone::Player& pl, const std::string& old
 
 void AccountManager::showRegisterHelp(endstone::Player& pl) {
     pl.sendMessage(endstone::ColorFormat::Yellow + "=== Регистрация аккаунта ===");
-    pl.sendMessage(endstone::ColorFormat::Gold + "Использование: /register <ник> <пароль> <подтверждение_пароля>");
+    pl.sendMessage(endstone::ColorFormat::Gold + "Использование: /register <пароль> <подтверждение_пароля>");
     pl.sendMessage(endstone::ColorFormat::Gray + "Требования:");
-    pl.sendMessage(endstone::ColorFormat::Gray + "  • Имя пользователя: 3-16 символов");
     pl.sendMessage(endstone::ColorFormat::Gray + "  • Пароль: не менее 4 символов");
     pl.sendMessage(endstone::ColorFormat::Gray + "  • Пароль и подтверждение должны совпадать");
+    pl.sendMessage(endstone::ColorFormat::Gray + "  • Аккаунт будет создан на ваш текущий никнейм");
 }
 
 void AccountManager::showLoginHelp(endstone::Player& pl) {
     pl.sendMessage(endstone::ColorFormat::Yellow + "=== Вход в аккаунт ===");
-    pl.sendMessage(endstone::ColorFormat::Gold + "Использование: /login <ник> <пароль>");
-    pl.sendMessage(endstone::ColorFormat::Gray + "Введите имя пользователя и пароль для входа в аккаунт.");
+    pl.sendMessage(endstone::ColorFormat::Gold + "Использование: /login <пароль>");
+    pl.sendMessage(endstone::ColorFormat::Gray + "Введите пароль для входа в ваш аккаунт.");
+    pl.sendMessage(endstone::ColorFormat::Gray + "Аккаунт привязан к вашему текущему никнейму.");
 }
 
 void AccountManager::showAccountInfo(endstone::Player& pl) {

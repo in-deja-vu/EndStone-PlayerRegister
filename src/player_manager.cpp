@@ -12,6 +12,8 @@ std::unordered_map<endstone::Player*, PlayerData> PlayerManager::playerDataMap;
 endstone::Plugin* PlayerManager::plugin_ = nullptr;
 const std::chrono::seconds PlayerManager::KICK_DELAY = std::chrono::seconds(140); // 2 минуты 20 секунд
 const std::chrono::seconds PlayerManager::REMINDER_INTERVAL = std::chrono::seconds(60); // 1 минута
+const std::chrono::seconds PlayerManager::AUTH_TIMEOUT = std::chrono::seconds(60); // 60 секунд
+const std::chrono::seconds PlayerManager::AUTH_REMINDER_INTERVAL = std::chrono::seconds(15); // 15 секунд
 
 void PlayerManager::setPlugin(endstone::Plugin* plugin) {
     plugin_ = plugin;
@@ -52,17 +54,18 @@ void PlayerManager::loadPlayer(endstone::Player* pl) {
     data.id = getId(pl);
     data.valid = false;
     data.isRegistered = false;
+    data.isAuthenticated = false;
     data.joinTime = std::chrono::steady_clock::now();
     data.isFrozen = false;
     playerDataMap[pl] = data;
     
-    // Start registration process
-    freezePlayer(pl);
-    startRegistrationTimer(pl);
+    // Start authorization process
+    startAuthorizationProcess(pl);
 }
 
 void PlayerManager::unloadPlayer(endstone::Player* pl) {
     stopRegistrationTimer(pl);
+    stopAuthorizationTimer(pl);
     playerDataMap.erase(pl);
 }
 
@@ -88,6 +91,7 @@ const std::unordered_map<endstone::Player*, PlayerData>& PlayerManager::getAllDa
 void PlayerManager::clearAllData() {
     for (auto& pair : playerDataMap) {
         stopRegistrationTimer(pair.first);
+        stopAuthorizationTimer(pair.first);
     }
     playerDataMap.clear();
 }
@@ -258,6 +262,202 @@ std::chrono::seconds PlayerManager::getTimeUntilKick(endstone::Player* pl) {
     }
     
     return std::chrono::duration_cast<std::chrono::seconds>(remaining);
+}
+
+// New authorization system implementation
+
+void PlayerManager::startAuthorizationProcess(endstone::Player* pl) {
+    auto it = playerDataMap.find(pl);
+    if (it == playerDataMap.end()) return;
+    
+    auto& data = it->second;
+    
+    // Save player state
+    savePlayerState(pl);
+    
+    // Clear inventory
+    auto& inventory = pl->getInventory();
+    for (int i = 0; i < inventory.getSize(); i++) {
+        inventory.clear(i);
+    }
+    
+    // Teleport player to height 15000
+    auto location = pl->getLocation();
+    location.setY(15000.0f);
+    pl->teleport(location);
+    
+    // Send title message
+    pl->sendTitle("Пожалуйста, зарегистрируйтесь", "для продолжения игры", 10, 120, 20);
+    
+    // Start authorization timer
+    startAuthorizationTimer(pl);
+    
+    // Send initial message
+    pl->sendMessage(endstone::ColorFormat::Yellow + "Добро пожаловать на сервер!");
+    pl->sendMessage(endstone::ColorFormat::Gold + "Пожалуйста, зарегистрируйтесь или войдите в аккаунт чтобы играть.");
+    pl->sendMessage(endstone::ColorFormat::Gold + "Используйте /register <пароль> <подтверждение> для регистрации");
+    pl->sendMessage(endstone::ColorFormat::Gold + "Или /login <пароль> для входа в существующий аккаунт");
+}
+
+void PlayerManager::completeAuthorizationProcess(endstone::Player* pl) {
+    auto it = playerDataMap.find(pl);
+    if (it == playerDataMap.end()) return;
+    
+    // Stop authorization timer
+    stopAuthorizationTimer(pl);
+    
+    // Restore player state
+    restorePlayerState(pl);
+    
+    // Mark player as authenticated
+    markPlayerAsAuthenticated(pl);
+    
+    // Send welcome message
+    pl->sendMessage(endstone::ColorFormat::Green + "Вы успешно авторизованы! Добро пожаловать на сервер!");
+}
+
+void PlayerManager::savePlayerState(endstone::Player* pl) {
+    auto it = playerDataMap.find(pl);
+    if (it == playerDataMap.end()) return;
+    
+    auto& data = it->second;
+    
+    // Save original location and rotation
+    data.originalLocation = pl->getLocation();
+    data.originalYaw = pl->getYaw();
+    data.originalPitch = pl->getPitch();
+    
+    // Save inventory
+    data.savedInventory.clear();
+    auto& inventory = pl->getInventory();
+    for (int i = 0; i < inventory.getSize(); i++) {
+        auto item = inventory.getItem(i);
+        if (item) {
+            data.savedInventory.push_back(*item);
+        }
+    }
+}
+
+void PlayerManager::restorePlayerState(endstone::Player* pl) {
+    auto it = playerDataMap.find(pl);
+    if (it == playerDataMap.end()) return;
+    
+    auto& data = it->second;
+    
+    // Restore location and rotation
+    pl->teleport(data.originalLocation);
+    pl->setYaw(data.originalYaw);
+    pl->setPitch(data.originalPitch);
+    
+    // Restore inventory
+    auto& inventory = pl->getInventory();
+    inventory.clear();
+    
+    for (const auto& item : data.savedInventory) {
+        inventory.addItem(item);
+    }
+    
+    // Clear saved inventory
+    data.savedInventory.clear();
+}
+
+void PlayerManager::startAuthorizationTimer(endstone::Player* pl) {
+    auto it = playerDataMap.find(pl);
+    if (it == playerDataMap.end()) return;
+    
+    auto& data = it->second;
+    
+    // Stop any existing timers
+    stopAuthorizationTimer(pl);
+    
+    if (plugin_) {
+        // Create kick task
+        data.authTimerTask = plugin_->getServer().getScheduler().runTaskLater(
+            *plugin_,
+            [pl]() {
+                if (!PlayerManager::isPlayerAuthenticated(pl)) {
+                    pl->kick(endstone::ColorFormat::Red + "Время авторизации истекло");
+                }
+            },
+            AUTH_TIMEOUT.count() * 20 // Convert to ticks (20 ticks = 1 second)
+        );
+        
+        // Create reminder task with specific intervals
+        data.authReminderTask = plugin_->getServer().getScheduler().runTaskTimer(
+            *plugin_,
+            [pl]() {
+                if (!PlayerManager::isPlayerAuthenticated(pl)) {
+                    auto it = PlayerManager::playerDataMap.find(pl);
+                    if (it != PlayerManager::playerDataMap.end()) {
+                        auto& data = it->second;
+                        auto now = std::chrono::steady_clock::now();
+                        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - data.joinTime);
+                        auto timeLeft = AUTH_TIMEOUT.count() - elapsed.count();
+                        
+                        if (timeLeft > 0) {
+                            if (timeLeft == 45 || timeLeft == 30 || timeLeft == 15) {
+                                PlayerManager::sendAuthorizationReminder(pl, static_cast<int>(timeLeft));
+                            }
+                        }
+                    }
+                }
+            },
+            15 * 20, // Start checking after 15 seconds
+            15 * 20  // Check every 15 seconds
+        );
+    }
+}
+
+void PlayerManager::stopAuthorizationTimer(endstone::Player* pl) {
+    auto it = playerDataMap.find(pl);
+    if (it == playerDataMap.end()) return;
+    
+    auto& data = it->second;
+    
+    // Cancel kick task
+    if (data.authTimerTask) {
+        data.authTimerTask->cancel();
+        data.authTimerTask.reset();
+    }
+    
+    // Cancel reminder task
+    if (data.authReminderTask) {
+        data.authReminderTask->cancel();
+        data.authReminderTask.reset();
+    }
+}
+
+void PlayerManager::sendAuthorizationReminder(endstone::Player* pl, int secondsLeft) {
+    if (!pl) return;
+    
+    // Send chat message
+    std::ostringstream msg;
+    msg << endstone::ColorFormat::Yellow << "[Auth] Осталось " << secondsLeft << " секунд для авторизации.";
+    pl->sendMessage(msg.str());
+    
+    // Send title/subtitle
+    pl->sendTitle("Время авторизации истекает!", "Осталось: " + std::to_string(secondsLeft) + " секунд", 0, 40, 10);
+}
+
+bool PlayerManager::isPlayerAuthenticated(endstone::Player* pl) {
+    auto it = playerDataMap.find(pl);
+    return it != playerDataMap.end() && it->second.isAuthenticated;
+}
+
+void PlayerManager::markPlayerAsAuthenticated(endstone::Player* pl) {
+    auto it = playerDataMap.find(pl);
+    if (it != playerDataMap.end()) {
+        it->second.isAuthenticated = true;
+    }
+}
+
+bool PlayerManager::isCommandAllowed(const std::string& command) {
+    // Allow only register and login commands for unauthorized players
+    return command == "register" || command == "login";
+}
+
+bool PlayerManager::isPlayerAuthorized(endstone::Player* pl) {
+    return isPlayerAuthenticated(pl);
 }
 
 } // namespace PlayerRegister

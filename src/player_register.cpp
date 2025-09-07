@@ -12,12 +12,12 @@ ENDSTONE_PLUGIN(/*name=*/"player_register", /*version=*/"1.4.0", /*main_class=*/
 
     command("register") //
         .description("Создать новый аккаунт.")
-        .usages("/register <ник> <пароль> <подтверждение_пароля>")
+        .usages("/register <пароль> <подтверждение_пароля>")
         .permissions("player_register.command.register");
 
     command("login") //
         .description("Войти в аккаунт.")
-        .usages("/login <ник> <пароль>")
+        .usages("/login <пароль>")
         .permissions("player_register.command.login");
 
     command("changepassword") //

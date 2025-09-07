@@ -22,10 +22,19 @@ struct PlayerData {
 
     bool valid = false;
     bool isRegistered = false;
+    bool isAuthenticated = false;
     std::chrono::steady_clock::time_point joinTime;
     bool isFrozen = false;
     std::shared_ptr<endstone::Task> kickTask;
     std::shared_ptr<endstone::Task> reminderTask;
+    
+    // New fields for authorization system
+    endstone::Location originalLocation;
+    float originalYaw = 0.0f;
+    float originalPitch = 0.0f;
+    std::vector<endstone::ItemStack> savedInventory;
+    std::shared_ptr<endstone::Task> authTimerTask;
+    std::shared_ptr<endstone::Task> authReminderTask;
 };
 
 class PlayerManager {
@@ -59,12 +68,27 @@ public:
     static bool isPlayerRegistered(endstone::Player* pl);
     static void markPlayerAsRegistered(endstone::Player* pl);
     static std::chrono::seconds getTimeUntilKick(endstone::Player* pl);
+    
+    // New authorization system methods
+    static void startAuthorizationProcess(endstone::Player* pl);
+    static void completeAuthorizationProcess(endstone::Player* pl);
+    static void savePlayerState(endstone::Player* pl);
+    static void restorePlayerState(endstone::Player* pl);
+    static void startAuthorizationTimer(endstone::Player* pl);
+    static void stopAuthorizationTimer(endstone::Player* pl);
+    static void sendAuthorizationReminder(endstone::Player* pl, int secondsLeft);
+    static bool isPlayerAuthenticated(endstone::Player* pl);
+    static void markPlayerAsAuthenticated(endstone::Player* pl);
+    static bool isCommandAllowed(const std::string& command);
+    static bool isPlayerAuthorized(endstone::Player* pl);
 
 private:
     static endstone::Plugin* plugin_;
     static std::unordered_map<endstone::Player*, PlayerData> playerDataMap;
     static const std::chrono::seconds KICK_DELAY;
     static const std::chrono::seconds REMINDER_INTERVAL;
+    static const std::chrono::seconds AUTH_TIMEOUT;
+    static const std::chrono::seconds AUTH_REMINDER_INTERVAL;
 };
 
 } // namespace PlayerRegister
