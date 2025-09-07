@@ -157,6 +157,9 @@ public:
     static void markPlayerAsAuthenticated(endstone::Player* pl);
     static bool isCommandAllowed(const std::string& command);
     static bool isPlayerAuthorized(endstone::Player* pl);
+    
+    // Helper function to parse UUID from string
+    static endstone::UUID parseUUIDFromString(const std::string& uuidStr);
 
 private:
     static endstone::Plugin* plugin_;
@@ -165,9 +168,6 @@ private:
     static const std::chrono::seconds REMINDER_INTERVAL;
     static const std::chrono::seconds AUTH_TIMEOUT;
     static const std::chrono::seconds AUTH_REMINDER_INTERVAL;
-    
-    // Helper function to parse UUID from string
-    static endstone::UUID parseUUIDFromString(const std::string& uuidStr);
 };
 
 } // namespace PlayerRegister
