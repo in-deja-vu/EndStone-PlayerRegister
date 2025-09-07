@@ -5,8 +5,37 @@
 #include <endstone/endstone.hpp>
 #include <thread>
 #include <sstream>
+#include <algorithm>
 
 namespace PlayerRegister {
+
+namespace {
+    // Helper function to parse UUID from string
+    endstone::UUID parseUUIDFromString(const std::string& uuidStr) {
+        endstone::UUID result;
+        
+        // Remove hyphens from UUID string and parse as hex
+        std::string cleanUuidStr = uuidStr;
+        cleanUuidStr.erase(std::remove(cleanUuidStr.begin(), cleanUuidStr.end(), '-'), cleanUuidStr.end());
+        
+        if (cleanUuidStr.length() == 32) {
+            uint64_t high = std::stoull(cleanUuidStr.substr(0, 16), nullptr, 16);
+            uint64_t low = std::stoull(cleanUuidStr.substr(16, 16), nullptr, 16);
+            // Create UUID by filling the byte array
+            for (int i = 0; i < 8; i++) {
+                result.data[i] = (high >> (8 * (7 - i))) & 0xFF;
+                result.data[8 + i] = (low >> (8 * (7 - i))) & 0xFF;
+            }
+        } else {
+            // Fallback to a default UUID if parsing fails - all zeros
+            for (int i = 0; i < 16; i++) {
+                result.data[i] = 0;
+            }
+        }
+        
+        return result;
+    }
+}
 
 std::unordered_map<endstone::Player*, PlayerData> PlayerManager::playerDataMap;
 endstone::Plugin* PlayerManager::plugin_ = nullptr;
@@ -171,7 +200,7 @@ void PlayerManager::startRegistrationTimer(endstone::Player* pl) {
                 // Find player by ID instead of using raw pointer
                 if (plugin_) {
                     auto& server = plugin_->getServer();
-                    auto* player = server.getPlayer(endstone::UUID::fromString(playerId));
+                    auto* player = server.getPlayer(parseUUIDFromString(playerId));
                     if (player) {
                         kickUnregisteredPlayer(player);
                     }
@@ -187,7 +216,7 @@ void PlayerManager::startRegistrationTimer(endstone::Player* pl) {
                 // Find player by ID instead of using raw pointer
                 if (plugin_) {
                     auto& server = plugin_->getServer();
-                    auto* player = server.getPlayer(endstone::UUID::fromString(playerId));
+                    auto* player = server.getPlayer(parseUUIDFromString(playerId));
                     if (player) {
                         sendRegistrationReminder(player);
                     }
@@ -396,7 +425,7 @@ void PlayerManager::startAuthorizationTimer(endstone::Player* pl) {
             [playerId]() {
                 if (plugin_) {
                     auto& server = plugin_->getServer();
-                    auto* player = server.getPlayer(endstone::UUID::fromString(playerId));
+                    auto* player = server.getPlayer(parseUUIDFromString(playerId));
                     if (player && !PlayerManager::isPlayerAuthenticated(player)) {
                         player->kick(endstone::ColorFormat::Red + "Время авторизации истекло");
                     }
@@ -411,7 +440,7 @@ void PlayerManager::startAuthorizationTimer(endstone::Player* pl) {
             [playerId]() {
                 if (plugin_) {
                     auto& server = plugin_->getServer();
-                    auto* player = server.getPlayer(endstone::UUID::fromString(playerId));
+                    auto* player = server.getPlayer(parseUUIDFromString(playerId));
                     if (player && !PlayerManager::isPlayerAuthenticated(player)) {
                         auto it = PlayerManager::playerDataMap.find(player);
                         if (it != PlayerManager::playerDataMap.end()) {
