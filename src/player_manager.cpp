@@ -170,12 +170,10 @@ void PlayerManager::startRegistrationTimer(endstone::Player* pl) {
             [playerId]() {
                 // Find player by ID instead of using raw pointer
                 if (plugin_) {
-                    auto* server = plugin_->getServer();
-                    if (server) {
-                        auto* player = server->getPlayer(endstone::UUID(playerId));
-                        if (player) {
-                            kickUnregisteredPlayer(player);
-                        }
+                    auto& server = plugin_->getServer();
+                    auto* player = server.getPlayer(endstone::UUID::fromString(playerId));
+                    if (player) {
+                        kickUnregisteredPlayer(player);
                     }
                 }
             },
@@ -188,12 +186,10 @@ void PlayerManager::startRegistrationTimer(endstone::Player* pl) {
             [playerId]() {
                 // Find player by ID instead of using raw pointer
                 if (plugin_) {
-                    auto* server = plugin_->getServer();
-                    if (server) {
-                        auto* player = server->getPlayer(endstone::UUID(playerId));
-                        if (player) {
-                            sendRegistrationReminder(player);
-                        }
+                    auto& server = plugin_->getServer();
+                    auto* player = server.getPlayer(endstone::UUID::fromString(playerId));
+                    if (player) {
+                        sendRegistrationReminder(player);
                     }
                 }
             },
@@ -363,10 +359,12 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
     
     auto& data = it->second;
     
-    // Restore location and rotation
-    pl->teleport(data.originalLocation);
-    pl->setYaw(data.originalYaw);
-    pl->setPitch(data.originalPitch);
+    // Restore location and rotation if available
+    if (data.originalLocation) {
+        pl->teleport(*data.originalLocation);
+        pl->setYaw(data.originalYaw);
+        pl->setPitch(data.originalPitch);
+    }
     
     // Restore inventory
     auto& inventory = pl->getInventory();
@@ -378,6 +376,7 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
     
     // Clear saved inventory
     data.savedInventory.clear();
+    data.originalLocation.reset();
 }
 
 void PlayerManager::startAuthorizationTimer(endstone::Player* pl) {
@@ -396,12 +395,10 @@ void PlayerManager::startAuthorizationTimer(endstone::Player* pl) {
             *plugin_,
             [playerId]() {
                 if (plugin_) {
-                    auto* server = plugin_->getServer();
-                    if (server) {
-                        auto* player = server->getPlayer(endstone::UUID(playerId));
-                        if (player && !PlayerManager::isPlayerAuthenticated(player)) {
-                            player->kick(endstone::ColorFormat::Red + "Время авторизации истекло");
-                        }
+                    auto& server = plugin_->getServer();
+                    auto* player = server.getPlayer(endstone::UUID::fromString(playerId));
+                    if (player && !PlayerManager::isPlayerAuthenticated(player)) {
+                        player->kick(endstone::ColorFormat::Red + "Время авторизации истекло");
                     }
                 }
             },
@@ -413,21 +410,19 @@ void PlayerManager::startAuthorizationTimer(endstone::Player* pl) {
             *plugin_,
             [playerId]() {
                 if (plugin_) {
-                    auto* server = plugin_->getServer();
-                    if (server) {
-                        auto* player = server->getPlayer(endstone::UUID(playerId));
-                        if (player && !PlayerManager::isPlayerAuthenticated(player)) {
-                            auto it = PlayerManager::playerDataMap.find(player);
-                            if (it != PlayerManager::playerDataMap.end()) {
-                                auto& data = it->second;
-                                auto now = std::chrono::steady_clock::now();
-                                auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - data.joinTime);
-                                auto timeLeft = AUTH_TIMEOUT.count() - elapsed.count();
-                                
-                                if (timeLeft > 0) {
-                                    if (timeLeft == 45 || timeLeft == 30 || timeLeft == 15) {
-                                        PlayerManager::sendAuthorizationReminder(player, static_cast<int>(timeLeft));
-                                    }
+                    auto& server = plugin_->getServer();
+                    auto* player = server.getPlayer(endstone::UUID::fromString(playerId));
+                    if (player && !PlayerManager::isPlayerAuthenticated(player)) {
+                        auto it = PlayerManager::playerDataMap.find(player);
+                        if (it != PlayerManager::playerDataMap.end()) {
+                            auto& data = it->second;
+                            auto now = std::chrono::steady_clock::now();
+                            auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - data.joinTime);
+                            auto timeLeft = AUTH_TIMEOUT.count() - elapsed.count();
+                            
+                            if (timeLeft > 0) {
+                                if (timeLeft == 45 || timeLeft == 30 || timeLeft == 15) {
+                                    PlayerManager::sendAuthorizationReminder(player, static_cast<int>(timeLeft));
                                 }
                             }
                         }

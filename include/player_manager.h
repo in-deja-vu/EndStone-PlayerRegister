@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <chrono>
 #include <memory>
+#include <optional>
 
 namespace PlayerRegister {
 
@@ -29,12 +30,15 @@ struct PlayerData {
     std::shared_ptr<endstone::Task> reminderTask;
     
     // New fields for authorization system
-    endstone::Location originalLocation;
+    std::optional<endstone::Location> originalLocation;
     float originalYaw = 0.0f;
     float originalPitch = 0.0f;
     std::vector<endstone::ItemStack> savedInventory;
     std::shared_ptr<endstone::Task> authTimerTask;
     std::shared_ptr<endstone::Task> authReminderTask;
+    
+    // Default constructor
+    PlayerData() = default;
 };
 
 class PlayerManager {
