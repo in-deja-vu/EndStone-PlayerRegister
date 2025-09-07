@@ -147,7 +147,7 @@ void PlayerManager::freezePlayer(endstone::Player* pl) {
         pl->setFlySpeed(0.0f);
         
         // Teleport player to a high location (in the sky)
-        auto location = pl->getLocation();
+        endstone::Location location = pl->getLocation();
         location.setY(256.0f); // High in the sky
         pl->teleport(location);
         
@@ -167,7 +167,7 @@ void PlayerManager::unfreezePlayer(endstone::Player* pl) {
         pl->setFlySpeed(0.1f);
         
         // Teleport player to ground level
-        auto location = pl->getLocation();
+        endstone::Location location = pl->getLocation();
         location.setY(64.0f); // Ground level
         pl->teleport(location);
         
@@ -316,7 +316,7 @@ void PlayerManager::startAuthorizationProcess(endstone::Player* pl) {
     
     // Debug output - show initial location
     if (plugin_) {
-        auto initialLocation = pl->getLocation();
+        endstone::Location initialLocation = pl->getLocation();
         std::ostringstream msg;
         msg << "Starting authorization process for " << pl->getName() << ": initial location=(" 
             << initialLocation.getX() << "," << initialLocation.getY() << "," << initialLocation.getZ() << ")";
@@ -333,13 +333,13 @@ void PlayerManager::startAuthorizationProcess(endstone::Player* pl) {
     }
     
     // Teleport player to height 15000 for authorization
-    auto location = pl->getLocation();
+    endstone::Location location = pl->getLocation();
     location.setY(15000.0f);
     pl->teleport(location);
     
     // Debug output - confirm teleportation
     if (plugin_) {
-        auto newLocation = pl->getLocation();
+        endstone::Location newLocation = pl->getLocation();
         std::ostringstream msg;
         msg << "Player " << pl->getName() << " teleported to authorization area: (" 
             << newLocation.getX() << "," << newLocation.getY() << "," << newLocation.getZ() << ")";
@@ -365,7 +365,7 @@ void PlayerManager::completeAuthorizationProcess(endstone::Player* pl) {
     
     // Debug output
     if (plugin_) {
-        auto currentLocation = pl->getLocation();
+        endstone::Location currentLocation = pl->getLocation();
         std::ostringstream msg;
         msg << "Completing authorization process for " << pl->getName() << ": current location=(" 
             << currentLocation.getX() << "," << currentLocation.getY() << "," << currentLocation.getZ() << ")";
@@ -386,7 +386,7 @@ void PlayerManager::completeAuthorizationProcess(endstone::Player* pl) {
     
     // Final debug output
     if (plugin_) {
-        auto finalLocation = pl->getLocation();
+        endstone::Location finalLocation = pl->getLocation();
         std::ostringstream msg;
         msg << "Authorization completed for " << pl->getName() << ": final location=(" 
             << finalLocation.getX() << "," << finalLocation.getY() << "," << finalLocation.getZ() << ")";
@@ -401,7 +401,7 @@ void PlayerManager::savePlayerState(endstone::Player* pl) {
     auto& data = it->second;
     
     // Save original location and rotation BEFORE any teleportation
-    auto currentLocation = pl->getLocation();
+    endstone::Location currentLocation = pl->getLocation();
     data.originalLocation = currentLocation;
     data.originalYaw = currentLocation.getYaw();
     data.originalPitch = currentLocation.getPitch();
@@ -435,7 +435,7 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
     
     // Debug output
     if (plugin_) {
-        auto currentLocation = pl->getLocation();
+        endstone::Location currentLocation = pl->getLocation();
         std::ostringstream msg;
         msg << "Restoring player state for " << pl->getName() << ": current location=(" 
             << currentLocation.getX() << "," << currentLocation.getY() << "," << currentLocation.getZ() 
@@ -488,7 +488,7 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
         
         // Additional debug output
         if (plugin_) {
-            auto newLocation = pl->getLocation();
+            endstone::Location newLocation = pl->getLocation();
             std::ostringstream msg;
             msg << "Player " << pl->getName() << " teleported successfully to: (" 
                 << newLocation.getX() << "," << newLocation.getY() << "," << newLocation.getZ() 
@@ -504,7 +504,7 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
         }
         
         // Create a simple spawn location at ground level with current position
-        auto currentLocation = pl->getLocation();
+        endstone::Location currentLocation = pl->getLocation();
         endstone::Location spawnLocation(
             currentLocation.getX(),  // X coordinate
             currentLocation.getY(),  // Y coordinate (use current Y instead of hardcoded 64)
