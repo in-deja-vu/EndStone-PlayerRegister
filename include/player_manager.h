@@ -42,12 +42,19 @@ struct PlayerData {
     
     // Copy constructor
     PlayerData(const PlayerData& other) 
-        : isRegistered(other.isRegistered)
-        , isLoggedIn(other.isLoggedIn)
+        : id(other.id)
+        , name(other.name)
+        , password(other.password)
+        , accounts(other.accounts)
+        , fakeUUID(other.fakeUUID)
+        , fakeXUID(other.fakeXUID)
+        , fakeDBkey(other.fakeDBkey)
+        , valid(other.valid)
+        , isRegistered(other.isRegistered)
+        , isAuthenticated(other.isAuthenticated)
+        , joinTime(other.joinTime)
         , isFrozen(other.isFrozen)
-        , registrationStartTime(other.registrationStartTime)
-        , loginStartTime(other.loginStartTime)
-        , authStartTime(other.authStartTime)
+        , kickTask(other.kickTask)
         , reminderTask(other.reminderTask)
         , originalLocation(other.originalLocation)
         , originalYaw(other.originalYaw)
@@ -67,12 +74,19 @@ struct PlayerData {
     // Copy assignment operator
     PlayerData& operator=(const PlayerData& other) {
         if (this != &other) {
+            id = other.id;
+            name = other.name;
+            password = other.password;
+            accounts = other.accounts;
+            fakeUUID = other.fakeUUID;
+            fakeXUID = other.fakeXUID;
+            fakeDBkey = other.fakeDBkey;
+            valid = other.valid;
             isRegistered = other.isRegistered;
-            isLoggedIn = other.isLoggedIn;
+            isAuthenticated = other.isAuthenticated;
+            joinTime = other.joinTime;
             isFrozen = other.isFrozen;
-            registrationStartTime = other.registrationStartTime;
-            loginStartTime = other.loginStartTime;
-            authStartTime = other.authStartTime;
+            kickTask = other.kickTask;
             reminderTask = other.reminderTask;
             originalLocation = other.originalLocation;
             originalYaw = other.originalYaw;
