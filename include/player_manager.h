@@ -39,6 +39,64 @@ struct PlayerData {
     
     // Default constructor
     PlayerData() = default;
+    
+    // Copy constructor
+    PlayerData(const PlayerData& other) 
+        : isRegistered(other.isRegistered)
+        , isLoggedIn(other.isLoggedIn)
+        , isFrozen(other.isFrozen)
+        , registrationStartTime(other.registrationStartTime)
+        , loginStartTime(other.loginStartTime)
+        , authStartTime(other.authStartTime)
+        , reminderTask(other.reminderTask)
+        , originalLocation(other.originalLocation)
+        , originalYaw(other.originalYaw)
+        , originalPitch(other.originalPitch)
+        , authTimerTask(other.authTimerTask)
+        , authReminderTask(other.authReminderTask)
+    {
+        // Deep copy the inventory
+        savedInventory.reserve(other.savedInventory.size());
+        for (const auto& item : other.savedInventory) {
+            if (item) {
+                savedInventory.push_back(std::make_unique<endstone::ItemStack>(*item));
+            }
+        }
+    }
+    
+    // Copy assignment operator
+    PlayerData& operator=(const PlayerData& other) {
+        if (this != &other) {
+            isRegistered = other.isRegistered;
+            isLoggedIn = other.isLoggedIn;
+            isFrozen = other.isFrozen;
+            registrationStartTime = other.registrationStartTime;
+            loginStartTime = other.loginStartTime;
+            authStartTime = other.authStartTime;
+            reminderTask = other.reminderTask;
+            originalLocation = other.originalLocation;
+            originalYaw = other.originalYaw;
+            originalPitch = other.originalPitch;
+            authTimerTask = other.authTimerTask;
+            authReminderTask = other.authReminderTask;
+            
+            // Deep copy the inventory
+            savedInventory.clear();
+            savedInventory.reserve(other.savedInventory.size());
+            for (const auto& item : other.savedInventory) {
+                if (item) {
+                    savedInventory.push_back(std::make_unique<endstone::ItemStack>(*item));
+                }
+            }
+        }
+        return *this;
+    }
+    
+    // Move constructor
+    PlayerData(PlayerData&& other) noexcept = default;
+    
+    // Move assignment operator
+    PlayerData& operator=(PlayerData&& other) noexcept = default;
 };
 
 class PlayerManager {
