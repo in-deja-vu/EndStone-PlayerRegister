@@ -37,8 +37,10 @@ set(SOURCES
 endstone_add_plugin(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 
-# Add nlohmann_json include directory
-target_include_directories(${PROJECT_NAME} PRIVATE include)
+# Link filesystem library for Linux
+if(UNIX AND NOT APPLE)
+    target_link_libraries(${PROJECT_NAME} PRIVATE stdc++fs)
+endif()
 
 # Let endstone_add_plugin handle all necessary linking
 # No need to specify additional libraries manually

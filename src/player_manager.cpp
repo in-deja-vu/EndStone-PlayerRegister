@@ -164,10 +164,20 @@ void PlayerManager::startRegistrationTimer(endstone::Player* pl) {
     
     // Create kick task
     if (plugin_) {
+        std::string playerId = pl->getUniqueId().str();
         data.kickTask = plugin_->getServer().getScheduler().runTaskLater(
             *plugin_,
-            [pl]() {
-                kickUnregisteredPlayer(pl);
+            [playerId]() {
+                // Find player by ID instead of using raw pointer
+                if (plugin_) {
+                    auto* server = plugin_->getServer();
+                    if (server) {
+                        auto* player = server->getPlayer(endstone::UUID(playerId));
+                        if (player) {
+                            kickUnregisteredPlayer(player);
+                        }
+                    }
+                }
             },
             KICK_DELAY.count() * 20 // Convert to ticks (20 ticks = 1 second)
         );
@@ -175,8 +185,17 @@ void PlayerManager::startRegistrationTimer(endstone::Player* pl) {
         // Create reminder task
         data.reminderTask = plugin_->getServer().getScheduler().runTaskTimer(
             *plugin_,
-            [pl]() {
-                sendRegistrationReminder(pl);
+            [playerId]() {
+                // Find player by ID instead of using raw pointer
+                if (plugin_) {
+                    auto* server = plugin_->getServer();
+                    if (server) {
+                        auto* player = server->getPlayer(endstone::UUID(playerId));
+                        if (player) {
+                            sendRegistrationReminder(player);
+                        }
+                    }
+                }
             },
             REMINDER_INTERVAL.count() * 20, // Initial delay
             REMINDER_INTERVAL.count() * 20  // Repeat interval
@@ -371,12 +390,19 @@ void PlayerManager::startAuthorizationTimer(endstone::Player* pl) {
     stopAuthorizationTimer(pl);
     
     if (plugin_) {
+        std::string playerId = pl->getUniqueId().str();
         // Create kick task
         data.authTimerTask = plugin_->getServer().getScheduler().runTaskLater(
             *plugin_,
-            [pl]() {
-                if (!PlayerManager::isPlayerAuthenticated(pl)) {
-                    pl->kick(endstone::ColorFormat::Red + "Время авторизации истекло");
+            [playerId]() {
+                if (plugin_) {
+                    auto* server = plugin_->getServer();
+                    if (server) {
+                        auto* player = server->getPlayer(endstone::UUID(playerId));
+                        if (player && !PlayerManager::isPlayerAuthenticated(player)) {
+                            player->kick(endstone::ColorFormat::Red + "Время авторизации истекло");
+                        }
+                    }
                 }
             },
             AUTH_TIMEOUT.count() * 20 // Convert to ticks (20 ticks = 1 second)
@@ -385,18 +411,24 @@ void PlayerManager::startAuthorizationTimer(endstone::Player* pl) {
         // Create reminder task with specific intervals
         data.authReminderTask = plugin_->getServer().getScheduler().runTaskTimer(
             *plugin_,
-            [pl]() {
-                if (!PlayerManager::isPlayerAuthenticated(pl)) {
-                    auto it = PlayerManager::playerDataMap.find(pl);
-                    if (it != PlayerManager::playerDataMap.end()) {
-                        auto& data = it->second;
-                        auto now = std::chrono::steady_clock::now();
-                        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - data.joinTime);
-                        auto timeLeft = AUTH_TIMEOUT.count() - elapsed.count();
-                        
-                        if (timeLeft > 0) {
-                            if (timeLeft == 45 || timeLeft == 30 || timeLeft == 15) {
-                                PlayerManager::sendAuthorizationReminder(pl, static_cast<int>(timeLeft));
+            [playerId]() {
+                if (plugin_) {
+                    auto* server = plugin_->getServer();
+                    if (server) {
+                        auto* player = server->getPlayer(endstone::UUID(playerId));
+                        if (player && !PlayerManager::isPlayerAuthenticated(player)) {
+                            auto it = PlayerManager::playerDataMap.find(player);
+                            if (it != PlayerManager::playerDataMap.end()) {
+                                auto& data = it->second;
+                                auto now = std::chrono::steady_clock::now();
+                                auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - data.joinTime);
+                                auto timeLeft = AUTH_TIMEOUT.count() - elapsed.count();
+                                
+                                if (timeLeft > 0) {
+                                    if (timeLeft == 45 || timeLeft == 30 || timeLeft == 15) {
+                                        PlayerManager::sendAuthorizationReminder(player, static_cast<int>(timeLeft));
+                                    }
+                                }
                             }
                         }
                     }
