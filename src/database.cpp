@@ -3,7 +3,6 @@
 #include "database.h"
 
 #include <fstream>
-#include <filesystem>
 #include <endstone/logger.h>
 #include <algorithm>
 #include <sstream>
@@ -15,26 +14,27 @@ std::string Database::dataDir_;
 bool Database::init(const std::string& dataDir) {
     dataDir_ = dataDir;
     
-    // Create directories if they don't exist using filesystem::path for cross-platform compatibility
-    std::filesystem::path playersPath = std::filesystem::path(dataDir_) / "players";
-    std::filesystem::path accountsPath = std::filesystem::path(dataDir_) / "accounts";
+    // Create directories if they don't exist using simple string concatenation
+    std::string playersPath = dataDir_ + "/players";
+    std::string accountsPath = dataDir_ + "/accounts";
     
-    ensureDirectoryExists(playersPath.string());
-    ensureDirectoryExists(accountsPath.string());
+    ensureDirectoryExists(playersPath);
+    ensureDirectoryExists(accountsPath);
     
     return true;
 }
 
 std::string Database::getPlayerFilePath(const std::string& id) {
-    return (std::filesystem::path(dataDir_) / "players" / (id + ".json")).string();
+    return dataDir_ + "/players/" + id + ".json";
 }
 
 std::string Database::getAccountFilePath(const std::string& name) {
-    return (std::filesystem::path(dataDir_) / "accounts" / (name + ".json")).string();
+    return dataDir_ + "/accounts/" + name + ".json";
 }
 
 void Database::ensureDirectoryExists(const std::string& path) {
-    std::filesystem::create_directories(path);
+    std::string dirCmd = "mkdir -p " + path;
+    std::system(dirCmd.c_str());
 }
 
 nlohmann::json Database::serializeData(const PlayerData& data) {
@@ -89,7 +89,8 @@ void Database::loadAsPlayer(PlayerData& data) {
 
 bool Database::removePlayer(const std::string& id) {
     std::string filePath = getPlayerFilePath(id);
-    return std::filesystem::remove(filePath);
+    std::string rmCmd = "rm -f " + filePath;
+    return std::system(rmCmd.c_str()) == 0;
 }
 
 void Database::storeAsAccount(const PlayerData& data) {

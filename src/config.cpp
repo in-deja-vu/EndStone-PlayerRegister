@@ -3,7 +3,6 @@
 #include "config.h"
 
 #include <fstream>
-#include <filesystem>
 #include <nlohmann/json.hpp>
 #include <sstream>
 
@@ -12,13 +11,14 @@ namespace PlayerRegister {
 Config Config::instance;
 
 bool Config::init(const std::string& configDir) {
-    std::filesystem::path configPath = std::filesystem::path(configDir) / "config.json";
+    std::string configPath = configDir + "/config.json";
     
     // Create config directory if it doesn't exist
-    std::filesystem::create_directories(configDir);
+    std::string dirCmd = "mkdir -p " + configDir;
+    std::system(dirCmd.c_str());
     
-    if (!loadConfig(configPath.string())) {
-        return saveConfig(configPath.string());
+    if (!loadConfig(configPath)) {
+        return saveConfig(configPath);
     }
     
     return true;

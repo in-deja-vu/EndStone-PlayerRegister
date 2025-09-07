@@ -15,14 +15,6 @@ if(WIN32)
     set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif()
 
-# Link filesystem library for different platforms
-if(UNIX AND NOT APPLE)
-    target_link_libraries(${PROJECT_NAME} PRIVATE stdc++fs)
-elseif(APPLE)
-    # macOS doesn't need special linking for filesystem
-    target_compile_options(${PROJECT_NAME} PRIVATE -std=c++20)
-endif()
-
 include(FetchContent)
 FetchContent_Declare(
         endstone
