@@ -314,7 +314,15 @@ void PlayerManager::startAuthorizationProcess(endstone::Player* pl) {
     
     auto& data = it->second;
     
-    // Save player state
+    // Debug output - show initial location
+    if (plugin_) {
+        auto initialLocation = pl->getLocation();
+        plugin_->getLogger().info("Starting authorization process for {}: initial location=({},{},{})", 
+            pl->getName(),
+            initialLocation.getX(), initialLocation.getY(), initialLocation.getZ());
+    }
+    
+    // Save player state FIRST - this saves the original spawn location
     savePlayerState(pl);
     
     // Clear inventory
@@ -323,10 +331,18 @@ void PlayerManager::startAuthorizationProcess(endstone::Player* pl) {
         inventory.clear(i);
     }
     
-    // Teleport player to height 15000
+    // Teleport player to height 15000 for authorization
     auto location = pl->getLocation();
     location.setY(15000.0f);
     pl->teleport(location);
+    
+    // Debug output - confirm teleportation
+    if (plugin_) {
+        auto newLocation = pl->getLocation();
+        plugin_->getLogger().info("Player {} teleported to authorization area: ({},{},{})", 
+            pl->getName(),
+            newLocation.getX(), newLocation.getY(), newLocation.getZ());
+    }
     
     // Send title message
     pl->sendTitle("Пожалуйста, зарегистрируйтесь", "для продолжения игры", 10, 120, 20);
@@ -345,10 +361,18 @@ void PlayerManager::completeAuthorizationProcess(endstone::Player* pl) {
     auto it = playerDataMap.find(pl);
     if (it == playerDataMap.end()) return;
     
+    // Debug output
+    if (plugin_) {
+        auto currentLocation = pl->getLocation();
+        plugin_->getLogger().info("Completing authorization process for {}: current location=({},{},{})", 
+            pl->getName(),
+            currentLocation.getX(), currentLocation.getY(), currentLocation.getZ());
+    }
+    
     // Stop authorization timer
     stopAuthorizationTimer(pl);
     
-    // Restore player state
+    // Restore player state - this should teleport player back to original location
     restorePlayerState(pl);
     
     // Mark player as authenticated
@@ -356,6 +380,14 @@ void PlayerManager::completeAuthorizationProcess(endstone::Player* pl) {
     
     // Send welcome message
     pl->sendMessage(endstone::ColorFormat::Green + "Вы успешно авторизованы! Добро пожаловать на сервер!");
+    
+    // Final debug output
+    if (plugin_) {
+        auto finalLocation = pl->getLocation();
+        plugin_->getLogger().info("Authorization completed for {}: final location=({},{},{})", 
+            pl->getName(),
+            finalLocation.getX(), finalLocation.getY(), finalLocation.getZ());
+    }
 }
 
 void PlayerManager::savePlayerState(endstone::Player* pl) {
@@ -364,10 +396,19 @@ void PlayerManager::savePlayerState(endstone::Player* pl) {
     
     auto& data = it->second;
     
-    // Save original location and rotation
-    data.originalLocation = pl->getLocation();
-    data.originalYaw = pl->getLocation().getYaw();
-    data.originalPitch = pl->getLocation().getPitch();
+    // Save original location and rotation BEFORE any teleportation
+    auto currentLocation = pl->getLocation();
+    data.originalLocation = currentLocation;
+    data.originalYaw = currentLocation.getYaw();
+    data.originalPitch = currentLocation.getPitch();
+    
+    // Debug output
+    if (plugin_) {
+        plugin_->getLogger().info("Saving player state for {}: location=({},{},{},{}), yaw={}, pitch={}", 
+            pl->getName(),
+            currentLocation.getX(), currentLocation.getY(), currentLocation.getZ(),
+            currentLocation.getYaw(), currentLocation.getPitch());
+    }
     
     // Save inventory
     data.savedInventory.clear();
@@ -387,10 +428,72 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
     
     auto& data = it->second;
     
+    // Debug output
+    if (plugin_) {
+        auto currentLocation = pl->getLocation();
+        plugin_->getLogger().info("Restoring player state for {}: current location=({},{},{},{})", 
+            pl->getName(),
+            currentLocation.getX(), currentLocation.getY(), currentLocation.getZ(),
+            currentLocation.getYaw(), currentLocation.getPitch());
+    }
+    
     // Restore location and rotation if available
     if (data.originalLocation) {
-        pl->teleport(*data.originalLocation);
-        pl->setRotation(data.originalYaw, data.originalPitch);
+        auto& originalLoc = *data.originalLocation;
+        
+        // Debug output
+        if (plugin_) {
+            plugin_->getLogger().info("Teleporting player {} back to original location: ({},{},{},{}), yaw={}, pitch={}", 
+                pl->getName(),
+                originalLoc.getX(), originalLoc.getY(), originalLoc.getZ(),
+                data.originalYaw, data.originalPitch);
+        }
+        
+        // Create a new location with the original coordinates using the correct constructor
+        // Get the dimension from the original location or current location
+        auto* dimension = originalLoc.getDimension();
+        if (!dimension) {
+            dimension = pl->getLocation().getDimension();
+        }
+        
+        endstone::Location restoreLocation(
+            originalLoc.getX(),      // Original X coordinate
+            originalLoc.getY(),      // Original Y coordinate (this should be the spawn height)
+            originalLoc.getZ(),      // Original Z coordinate
+            data.originalPitch,      // Original pitch (vertical rotation)
+            data.originalYaw,        // Original yaw (horizontal rotation)
+            *dimension               // The dimension/world
+        );
+        
+        // Teleport player back to original location
+        pl->teleport(restoreLocation);
+        
+        // Additional debug output
+        if (plugin_) {
+            auto newLocation = pl->getLocation();
+            plugin_->getLogger().info("Player {} teleported successfully to: ({},{},{},{}), yaw={}, pitch={}", 
+                pl->getName(),
+                newLocation.getX(), newLocation.getY(), newLocation.getZ(),
+                newLocation.getYaw(), newLocation.getPitch());
+        }
+    } else {
+        // Fallback: teleport to spawn location if no original location saved
+        if (plugin_) {
+            plugin_->getLogger().warn("No original location saved for player {}, teleporting to world spawn", pl->getName());
+        }
+        
+        // Get the world spawn location
+        auto level = pl->getLevel();
+        if (level) {
+            auto spawnLocation = level->getSpawnLocation();
+            pl->teleport(spawnLocation);
+            
+            if (plugin_) {
+                plugin_->getLogger().info("Player {} teleported to world spawn: ({},{},{})", 
+                    pl->getName(),
+                    spawnLocation.getX(), spawnLocation.getY(), spawnLocation.getZ());
+            }
+        }
     }
     
     // Restore inventory
@@ -405,7 +508,13 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
     }
     
     // Add all items at once
-    inventory.addItem(itemPointers);
+    if (!itemPointers.empty()) {
+        inventory.addItem(itemPointers);
+        
+        if (plugin_) {
+            plugin_->getLogger().info("Restored {} items for player {}", itemPointers.size(), pl->getName());
+        }
+    }
     
     // Clear saved inventory
     data.savedInventory.clear();
