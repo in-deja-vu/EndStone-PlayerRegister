@@ -399,7 +399,7 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
     inventory.clear();
     
     // Create a vector of pointers for addItem
-    std::vector<ItemStack*> itemPointers;
+    std::vector<endstone::ItemStack*> itemPointers;
     itemPointers.reserve(data.savedInventory.size());
     for (auto& item : data.savedInventory) {
         itemPointers.push_back(&item);
