@@ -13,8 +13,12 @@ Config Config::instance;
 bool Config::init(const std::string& configDir) {
     std::string configPath = configDir + "/config.json";
     
-    // Create config directory if it doesn't exist
-    std::string dirCmd = "mkdir -p " + configDir;
+    // Create config directory if it doesn't exist - cross-platform solution
+#ifdef _WIN32
+    std::string dirCmd = "mkdir \"" + configDir + "\" 2>nul";
+#else
+    std::string dirCmd = "mkdir -p \"" + configDir + "\" 2>/dev/null";
+#endif
     std::system(dirCmd.c_str());
     
     if (!loadConfig(configPath)) {

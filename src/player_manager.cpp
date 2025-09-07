@@ -323,7 +323,7 @@ void PlayerManager::startAuthorizationProcess(endstone::Player* pl) {
         plugin_->getLogger().info(msg.str());
     }
     
-    // Save player state FIRST - this saves the original spawn location
+    // Save player state FIRST - this saves the ORIGINAL spawn location BEFORE any teleportation
     savePlayerState(pl);
     
     // Clear inventory
@@ -593,9 +593,8 @@ void PlayerManager::startAuthorizationTimer(endstone::Player* pl) {
                             auto timeLeft = AUTH_TIMEOUT.count() - elapsed.count();
                             
                             if (timeLeft > 0) {
-                                if (timeLeft == 45 || timeLeft == 30 || timeLeft == 15) {
-                                    PlayerManager::sendAuthorizationReminder(player, static_cast<int>(timeLeft));
-                                }
+                                // Send reminder every 15 seconds
+                                PlayerManager::sendAuthorizationReminder(player, static_cast<int>(timeLeft));
                             }
                         }
                     }
@@ -629,13 +628,21 @@ void PlayerManager::stopAuthorizationTimer(endstone::Player* pl) {
 void PlayerManager::sendAuthorizationReminder(endstone::Player* pl, int secondsLeft) {
     if (!pl) return;
     
-    // Send chat message
+    // Send chat message with instructions
     std::ostringstream msg;
-    msg << endstone::ColorFormat::Yellow << "[Auth] Осталось " << secondsLeft << " секунд для авторизации.";
+    msg << endstone::ColorFormat::Yellow << "[Auth] У вас осталось " << secondsLeft << " секунд для авторизации!";
     pl->sendMessage(msg.str());
     
-    // Send title/subtitle
-    pl->sendTitle("Время авторизации истекает!", "Осталось: " + std::to_string(secondsLeft) + " секунд", 0, 40, 10);
+    // Send instructions
+    pl->sendMessage(endstone::ColorFormat::Gold + "Используйте /register <пароль> <подтверждение> для регистрации");
+    pl->sendMessage(endstone::ColorFormat::Gold + "Или /login <пароль> для входа в существующий аккаунт");
+    
+    // Send title/subtitle for visual notification
+    if (secondsLeft <= 30) {
+        pl->sendTitle("СРОЧНО АВТОРИЗУЙТЕСЬ!", "Осталось: " + std::to_string(secondsLeft) + " секунд", 0, 60, 20);
+    } else {
+        pl->sendTitle("Требуется авторизация", "Осталось: " + std::to_string(secondsLeft) + " секунд", 0, 40, 10);
+    }
 }
 
 bool PlayerManager::isPlayerAuthenticated(endstone::Player* pl) {

@@ -85,19 +85,20 @@ bool AccountManager::createAccount(endstone::Player& pl, const std::string& name
     }
 
     data.valid = true;
+    data.isRegistered = true;
+    data.isAuthenticated = true;
     Database::storeAsAccount(data);
     Database::storeAsPlayer(data);
     
     pl.sendMessage(endstone::ColorFormat::Green + "Аккаунт успешно создан!");
     
-    // Complete authorization process
+    // Complete authorization process - this will teleport player back
     PlayerManager::completeAuthorizationProcess(&pl);
     
-    if (create_new) {
-        PlayerManager::reconnect(&pl);
-    } else {
-        PlayerManager::setPlayerData(&pl, data);
-    }
+    // Update player data to mark as authenticated
+    PlayerManager::setPlayerData(&pl, data);
+    
+    // No need for reconnect since we're already authenticated
     
     return true;
 }
@@ -123,15 +124,17 @@ bool AccountManager::loginAccount(endstone::Player& pl, const std::string& name,
         return false;
     }
 
+    data.isRegistered = true;
+    data.isAuthenticated = true;
     Database::storeAsPlayer(data);
     PlayerManager::setPlayerData(&pl, data);
     
     pl.sendMessage(endstone::ColorFormat::Green + "Успешный вход в систему!");
     
-    // Complete authorization process
+    // Complete authorization process - this will teleport player back
     PlayerManager::completeAuthorizationProcess(&pl);
     
-    PlayerManager::reconnect(&pl);
+    // No need for reconnect since we're already authenticated
     
     return true;
 }
