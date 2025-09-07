@@ -165,6 +165,9 @@ private:
     static const std::chrono::seconds REMINDER_INTERVAL;
     static const std::chrono::seconds AUTH_TIMEOUT;
     static const std::chrono::seconds AUTH_REMINDER_INTERVAL;
+    
+    // Helper function to parse UUID from string
+    static endstone::UUID parseUUIDFromString(const std::string& uuidStr);
 };
 
 } // namespace PlayerRegister
