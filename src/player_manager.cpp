@@ -368,8 +368,8 @@ void PlayerManager::savePlayerState(endstone::Player* pl) {
     
     // Save original location and rotation
     data.originalLocation = pl->getLocation();
-    data.originalYaw = pl->getYaw();
-    data.originalPitch = pl->getPitch();
+    data.originalYaw = pl->getLocation().getYaw();
+    data.originalPitch = pl->getLocation().getPitch();
     
     // Save inventory
     data.savedInventory.clear();
@@ -391,17 +391,22 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
     // Restore location and rotation if available
     if (data.originalLocation) {
         pl->teleport(*data.originalLocation);
-        pl->setYaw(data.originalYaw);
-        pl->setPitch(data.originalPitch);
+        pl->setRotation(data.originalYaw, data.originalPitch);
     }
     
     // Restore inventory
     auto& inventory = pl->getInventory();
     inventory.clear();
     
-    for (const auto& item : data.savedInventory) {
-        inventory.addItem(item);
+    // Create a vector of pointers for addItem
+    std::vector<ItemStack*> itemPointers;
+    itemPointers.reserve(data.savedInventory.size());
+    for (auto& item : data.savedInventory) {
+        itemPointers.push_back(&item);
     }
+    
+    // Add all items at once
+    inventory.addItem(itemPointers);
     
     // Clear saved inventory
     data.savedInventory.clear();

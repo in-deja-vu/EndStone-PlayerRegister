@@ -12,7 +12,7 @@ public:
     void onPlayerJoin(endstone::PlayerJoinEvent &event);
     void onPlayerQuit(endstone::PlayerQuitEvent &event);
     void onPlayerChat(endstone::PlayerChatEvent &event);
-    void onPlayerCommand(endstone::PlayerCommandPreprocessEvent &event);
+    void onPlayerCommand(endstone::PlayerCommandEvent &event);
 
 private:
     endstone::Plugin &plugin_;

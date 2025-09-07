@@ -40,7 +40,7 @@ void PlayerRegisterListener::onPlayerChat(endstone::PlayerChatEvent &event)
     }
 }
 
-void PlayerRegisterListener::onPlayerCommand(endstone::PlayerCommandPreprocessEvent &event)
+void PlayerRegisterListener::onPlayerCommand(endstone::PlayerCommandEvent &event)
 {
     auto& player = event.getPlayer();
     std::string command = event.getMessage();
