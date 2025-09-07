@@ -43,7 +43,7 @@ void PlayerRegisterListener::onPlayerChat(endstone::PlayerChatEvent &event)
 void PlayerRegisterListener::onPlayerCommand(endstone::PlayerCommandEvent &event)
 {
     auto& player = event.getPlayer();
-    std::string command = event.getMessage();
+    std::string command = event.getCommand();
     
     // Remove the leading slash
     if (!command.empty() && command[0] == '/') {
