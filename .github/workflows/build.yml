@@ -24,12 +24,6 @@ jobs:
       - name: Set up CMake and Ninja
         uses: lukka/get-cmake@latest
 
-      - name: Install nlohmann/json
-        run: |
-          # Download nlohmann/json single header
-          mkdir -p include/nlohmann
-          curl -L -o include/nlohmann/json.hpp https://github.com/nlohmann/json/releases/download/v3.11.3/json.hpp
-
       - name: Build with CMake
         run: |
           mkdir build
@@ -68,12 +62,6 @@ jobs:
 
       - name: Set up CMake and Ninja
         uses: lukka/get-cmake@latest
-
-      - name: Install nlohmann/json
-        run: |
-          # Download nlohmann/json single header
-          mkdir -p include/nlohmann
-          curl -L -o include/nlohmann/json.hpp https://github.com/nlohmann/json/releases/download/v3.11.3/json.hpp
 
       - name: Build with CMake
         run: |
