@@ -402,7 +402,7 @@ void PlayerManager::savePlayerState(endstone::Player* pl) {
     
     // Save original location and rotation BEFORE any teleportation
     endstone::Location currentLocation = pl->getLocation();
-    data.originalLocation = currentLocation;
+    data.originalLocation = std::make_unique<endstone::Location>(currentLocation);
     data.originalYaw = currentLocation.getYaw();
     data.originalPitch = currentLocation.getPitch();
     
