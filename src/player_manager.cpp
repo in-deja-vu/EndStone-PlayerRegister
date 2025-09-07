@@ -449,24 +449,35 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
                 data.originalYaw, data.originalPitch);
         }
         
-        // Create a new location with the original coordinates using the correct constructor
-        // Get the dimension from the original location or current location
+        // Create a new location with the original coordinates and rotation
+        // Use the dimension from the original location, fallback to current if not available
         auto* dimension = originalLoc.getDimension();
         if (!dimension) {
             dimension = pl->getLocation().getDimension();
         }
         
-        endstone::Location restoreLocation(
-            originalLoc.getX(),      // Original X coordinate
-            originalLoc.getY(),      // Original Y coordinate (this should be the spawn height)
-            originalLoc.getZ(),      // Original Z coordinate
-            data.originalPitch,      // Original pitch (vertical rotation)
-            data.originalYaw,        // Original yaw (horizontal rotation)
-            *dimension               // The dimension/world
-        );
-        
-        // Teleport player back to original location
-        pl->teleport(restoreLocation);
+        if (dimension) {
+            // Create location with dimension
+            endstone::Location restoreLocation(
+                originalLoc.getX(),      // Original X coordinate
+                originalLoc.getY(),      // Original Y coordinate (spawn height)
+                originalLoc.getZ(),      // Original Z coordinate
+                data.originalPitch,      // Original pitch (vertical rotation)
+                data.originalYaw,        // Original yaw (horizontal rotation)
+                *dimension               // The dimension/world
+            );
+            pl->teleport(restoreLocation);
+        } else {
+            // Fallback: create location without dimension
+            endstone::Location restoreLocation(
+                originalLoc.getX(),      // Original X coordinate
+                originalLoc.getY(),      // Original Y coordinate (spawn height)
+                originalLoc.getZ(),      // Original Z coordinate
+                data.originalPitch,      // Original pitch (vertical rotation)
+                data.originalYaw         // Original yaw (horizontal rotation)
+            );
+            pl->teleport(restoreLocation);
+        }
         
         // Additional debug output
         if (plugin_) {
