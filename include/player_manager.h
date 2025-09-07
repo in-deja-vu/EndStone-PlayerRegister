@@ -33,7 +33,7 @@ struct PlayerData {
     std::optional<endstone::Location> originalLocation;
     float originalYaw = 0.0f;
     float originalPitch = 0.0f;
-    std::vector<endstone::ItemStack> savedInventory;
+    std::vector<std::unique_ptr<endstone::ItemStack>> savedInventory;
     std::shared_ptr<endstone::Task> authTimerTask;
     std::shared_ptr<endstone::Task> authReminderTask;
     

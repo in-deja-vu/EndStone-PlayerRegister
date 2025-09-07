@@ -377,7 +377,8 @@ void PlayerManager::savePlayerState(endstone::Player* pl) {
     for (int i = 0; i < inventory.getSize(); i++) {
         auto item = inventory.getItem(i);
         if (item) {
-            data.savedInventory.push_back(*item);
+            // Clone the item and store it as unique_ptr
+            data.savedInventory.push_back(std::make_unique<endstone::ItemStack>(*item));
         }
     }
 }
@@ -402,7 +403,7 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
     std::vector<endstone::ItemStack*> itemPointers;
     itemPointers.reserve(data.savedInventory.size());
     for (auto& item : data.savedInventory) {
-        itemPointers.push_back(&item);
+        itemPointers.push_back(item.get());
     }
     
     // Add all items at once
