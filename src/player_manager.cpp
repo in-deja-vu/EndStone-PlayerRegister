@@ -317,9 +317,10 @@ void PlayerManager::startAuthorizationProcess(endstone::Player* pl) {
     // Debug output - show initial location
     if (plugin_) {
         auto initialLocation = pl->getLocation();
-        plugin_->getLogger().info("Starting authorization process for {}: initial location=({},{},{})", 
-            pl->getName(),
-            initialLocation.getX(), initialLocation.getY(), initialLocation.getZ());
+        std::ostringstream msg;
+        msg << "Starting authorization process for " << pl->getName() << ": initial location=(" 
+            << initialLocation.getX() << "," << initialLocation.getY() << "," << initialLocation.getZ() << ")";
+        plugin_->getLogger().info(msg.str());
     }
     
     // Save player state FIRST - this saves the original spawn location
@@ -339,9 +340,10 @@ void PlayerManager::startAuthorizationProcess(endstone::Player* pl) {
     // Debug output - confirm teleportation
     if (plugin_) {
         auto newLocation = pl->getLocation();
-        plugin_->getLogger().info("Player {} teleported to authorization area: ({},{},{})", 
-            pl->getName(),
-            newLocation.getX(), newLocation.getY(), newLocation.getZ());
+        std::ostringstream msg;
+        msg << "Player " << pl->getName() << " teleported to authorization area: (" 
+            << newLocation.getX() << "," << newLocation.getY() << "," << newLocation.getZ() << ")";
+        plugin_->getLogger().info(msg.str());
     }
     
     // Send title message
@@ -364,9 +366,10 @@ void PlayerManager::completeAuthorizationProcess(endstone::Player* pl) {
     // Debug output
     if (plugin_) {
         auto currentLocation = pl->getLocation();
-        plugin_->getLogger().info("Completing authorization process for {}: current location=({},{},{})", 
-            pl->getName(),
-            currentLocation.getX(), currentLocation.getY(), currentLocation.getZ());
+        std::ostringstream msg;
+        msg << "Completing authorization process for " << pl->getName() << ": current location=(" 
+            << currentLocation.getX() << "," << currentLocation.getY() << "," << currentLocation.getZ() << ")";
+        plugin_->getLogger().info(msg.str());
     }
     
     // Stop authorization timer
@@ -384,9 +387,10 @@ void PlayerManager::completeAuthorizationProcess(endstone::Player* pl) {
     // Final debug output
     if (plugin_) {
         auto finalLocation = pl->getLocation();
-        plugin_->getLogger().info("Authorization completed for {}: final location=({},{},{})", 
-            pl->getName(),
-            finalLocation.getX(), finalLocation.getY(), finalLocation.getZ());
+        std::ostringstream msg;
+        msg << "Authorization completed for " << pl->getName() << ": final location=(" 
+            << finalLocation.getX() << "," << finalLocation.getY() << "," << finalLocation.getZ() << ")";
+        plugin_->getLogger().info(msg.str());
     }
 }
 
@@ -404,10 +408,11 @@ void PlayerManager::savePlayerState(endstone::Player* pl) {
     
     // Debug output
     if (plugin_) {
-        plugin_->getLogger().info("Saving player state for {}: location=({},{},{},{}), yaw={}, pitch={}", 
-            pl->getName(),
-            currentLocation.getX(), currentLocation.getY(), currentLocation.getZ(),
-            currentLocation.getYaw(), currentLocation.getPitch());
+        std::ostringstream msg;
+        msg << "Saving player state for " << pl->getName() << ": location=(" 
+            << currentLocation.getX() << "," << currentLocation.getY() << "," << currentLocation.getZ() 
+            << "), yaw=" << currentLocation.getYaw() << ", pitch=" << currentLocation.getPitch();
+        plugin_->getLogger().info(msg.str());
     }
     
     // Save inventory
@@ -431,10 +436,11 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
     // Debug output
     if (plugin_) {
         auto currentLocation = pl->getLocation();
-        plugin_->getLogger().info("Restoring player state for {}: current location=({},{},{},{})", 
-            pl->getName(),
-            currentLocation.getX(), currentLocation.getY(), currentLocation.getZ(),
-            currentLocation.getYaw(), currentLocation.getPitch());
+        std::ostringstream msg;
+        msg << "Restoring player state for " << pl->getName() << ": current location=(" 
+            << currentLocation.getX() << "," << currentLocation.getY() << "," << currentLocation.getZ() 
+            << "), yaw=" << currentLocation.getYaw() << ", pitch=" << currentLocation.getPitch();
+        plugin_->getLogger().info(msg.str());
     }
     
     // Restore location and rotation if available
@@ -443,10 +449,11 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
         
         // Debug output
         if (plugin_) {
-            plugin_->getLogger().info("Teleporting player {} back to original location: ({},{},{},{}), yaw={}, pitch={}", 
-                pl->getName(),
-                originalLoc.getX(), originalLoc.getY(), originalLoc.getZ(),
-                data.originalYaw, data.originalPitch);
+            std::ostringstream msg;
+            msg << "Teleporting player " << pl->getName() << " back to original location: (" 
+                << originalLoc.getX() << "," << originalLoc.getY() << "," << originalLoc.getZ() 
+                << "), yaw=" << data.originalYaw << ", pitch=" << data.originalPitch;
+            plugin_->getLogger().info(msg.str());
         }
         
         // Create a new location with the original coordinates and rotation
@@ -457,14 +464,14 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
         }
         
         if (dimension) {
-            // Create location with dimension
+            // Create location with dimension - correct constructor order
             endstone::Location restoreLocation(
+                dimension,               // Dimension pointer first
                 originalLoc.getX(),      // Original X coordinate
                 originalLoc.getY(),      // Original Y coordinate (spawn height)
                 originalLoc.getZ(),      // Original Z coordinate
-                data.originalPitch,      // Original pitch (vertical rotation)
                 data.originalYaw,        // Original yaw (horizontal rotation)
-                *dimension               // The dimension/world
+                data.originalPitch       // Original pitch (vertical rotation)
             );
             pl->teleport(restoreLocation);
         } else {
@@ -482,28 +489,36 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
         // Additional debug output
         if (plugin_) {
             auto newLocation = pl->getLocation();
-            plugin_->getLogger().info("Player {} teleported successfully to: ({},{},{},{}), yaw={}, pitch={}", 
-                pl->getName(),
-                newLocation.getX(), newLocation.getY(), newLocation.getZ(),
-                newLocation.getYaw(), newLocation.getPitch());
+            std::ostringstream msg;
+            msg << "Player " << pl->getName() << " teleported successfully to: (" 
+                << newLocation.getX() << "," << newLocation.getY() << "," << newLocation.getZ() 
+                << "), yaw=" << newLocation.getYaw() << ", pitch=" << newLocation.getPitch();
+            plugin_->getLogger().info(msg.str());
         }
     } else {
         // Fallback: teleport to spawn location if no original location saved
         if (plugin_) {
-            plugin_->getLogger().warn("No original location saved for player {}, teleporting to world spawn", pl->getName());
+            std::ostringstream msg;
+            msg << "No original location saved for player " << pl->getName() << ", teleporting to world spawn";
+            plugin_->getLogger().info(msg.str());
         }
         
-        // Get the world spawn location
-        auto level = pl->getLevel();
-        if (level) {
-            auto spawnLocation = level->getSpawnLocation();
-            pl->teleport(spawnLocation);
-            
-            if (plugin_) {
-                plugin_->getLogger().info("Player {} teleported to world spawn: ({},{},{})", 
-                    pl->getName(),
-                    spawnLocation.getX(), spawnLocation.getY(), spawnLocation.getZ());
-            }
+        // Create a simple spawn location at ground level with current position
+        auto currentLocation = pl->getLocation();
+        endstone::Location spawnLocation(
+            currentLocation.getX(),  // Keep current X
+            64.0f,                  // Ground level Y
+            currentLocation.getZ(),  // Keep current Z
+            0.0f,                   // Default pitch
+            0.0f                    // Default yaw
+        );
+        pl->teleport(spawnLocation);
+        
+        if (plugin_) {
+            std::ostringstream msg;
+            msg << "Player " << pl->getName() << " teleported to fallback spawn: (" 
+                << spawnLocation.getX() << "," << spawnLocation.getY() << "," << spawnLocation.getZ() << ")";
+            plugin_->getLogger().info(msg.str());
         }
     }
     
@@ -523,7 +538,9 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
         inventory.addItem(itemPointers);
         
         if (plugin_) {
-            plugin_->getLogger().info("Restored {} items for player {}", itemPointers.size(), pl->getName());
+            std::ostringstream msg;
+            msg << "Restored " << itemPointers.size() << " items for player " << pl->getName();
+            plugin_->getLogger().info(msg.str());
         }
     }
     
