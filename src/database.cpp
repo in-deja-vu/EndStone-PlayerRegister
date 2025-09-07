@@ -52,24 +52,9 @@ void Database::deserializeData(const nlohmann::json& j, PlayerData& data) {
     data.name = j["name"].get<std::string>();
     data.password = j["password"].get<std::string>();
     data.accounts = j["accounts"].get<int>();
-    // Parse UUID from string - Endstone UUID is a byte array
+    // Parse UUID from string using shared function
     std::string uuidStr = j["fakeUUID"].get<std::string>();
-    // Remove hyphens from UUID string and parse as hex
-    uuidStr.erase(std::remove(uuidStr.begin(), uuidStr.end(), '-'), uuidStr.end());
-    if (uuidStr.length() == 32) {
-        uint64_t high = std::stoull(uuidStr.substr(0, 16), nullptr, 16);
-        uint64_t low = std::stoull(uuidStr.substr(16, 16), nullptr, 16);
-        // Create UUID by filling the byte array
-        for (int i = 0; i < 8; i++) {
-            data.fakeUUID.data[i] = (high >> (8 * (7 - i))) & 0xFF;
-            data.fakeUUID.data[8 + i] = (low >> (8 * (7 - i))) & 0xFF;
-        }
-    } else {
-        // Fallback to a default UUID if parsing fails - all zeros
-        for (int i = 0; i < 16; i++) {
-            data.fakeUUID.data[i] = 0;
-        }
-    }
+    data.fakeUUID = PlayerManager::parseUUIDFromString(uuidStr);
     data.fakeXUID = j["fakeXUID"].get<std::string>();
     data.fakeDBkey = j["fakeDBkey"].get<std::string>();
 }
