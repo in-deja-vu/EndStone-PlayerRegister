@@ -56,7 +56,7 @@ struct PlayerData {
         , isFrozen(other.isFrozen)
         , kickTask(other.kickTask)
         , reminderTask(other.reminderTask)
-        , originalLocation(other.originalLocation)
+        , originalLocation(other.originalLocation ? std::make_unique<endstone::Location>(*other.originalLocation) : nullptr)
         , originalYaw(other.originalYaw)
         , originalPitch(other.originalPitch)
         , authTimerTask(other.authTimerTask)
@@ -88,7 +88,7 @@ struct PlayerData {
             isFrozen = other.isFrozen;
             kickTask = other.kickTask;
             reminderTask = other.reminderTask;
-            originalLocation = other.originalLocation;
+            originalLocation = other.originalLocation ? std::make_unique<endstone::Location>(*other.originalLocation) : nullptr;
             originalYaw = other.originalYaw;
             originalPitch = other.originalPitch;
             authTimerTask = other.authTimerTask;

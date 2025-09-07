@@ -464,24 +464,25 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
         }
         
         if (dimension) {
-            // Create location with dimension - correct constructor order and reference
+            // Create location with dimension - correct constructor order
             endstone::Location restoreLocation(
-                originalLoc.getX(),      // Original X coordinate
-                originalLoc.getY(),      // Original Y coordinate (spawn height)
-                originalLoc.getZ(),      // Original Z coordinate
-                data.originalPitch,      // Original pitch (vertical rotation)
-                data.originalYaw,        // Original yaw (horizontal rotation)
-                *dimension               // Dimension reference (dereferenced pointer)
+                dimension,               // Dimension pointer (first argument)
+                originalLoc.getX(),      // X coordinate
+                originalLoc.getY(),      // Y coordinate
+                originalLoc.getZ(),      // Z coordinate
+                data.originalYaw,        // Yaw (horizontal rotation)
+                data.originalPitch       // Pitch (vertical rotation)
             );
             pl->teleport(restoreLocation);
         } else {
-            // Fallback: create location without dimension
+            // Fallback: create location without dimension - use nullptr for dimension
             endstone::Location restoreLocation(
-                originalLoc.getX(),      // Original X coordinate
-                originalLoc.getY(),      // Original Y coordinate (spawn height)
-                originalLoc.getZ(),      // Original Z coordinate
-                data.originalPitch,      // Original pitch (vertical rotation)
-                data.originalYaw         // Original yaw (horizontal rotation)
+                nullptr,                 // No dimension
+                originalLoc.getX(),      // X coordinate
+                originalLoc.getY(),      // Y coordinate
+                originalLoc.getZ(),      // Z coordinate
+                data.originalYaw,        // Yaw (horizontal rotation)
+                data.originalPitch       // Pitch (vertical rotation)
             );
             pl->teleport(restoreLocation);
         }
@@ -506,11 +507,12 @@ void PlayerManager::restorePlayerState(endstone::Player* pl) {
         // Create a simple spawn location at ground level with current position
         endstone::Location currentLocation = pl->getLocation();
         endstone::Location spawnLocation(
-            currentLocation.getX(),  // X coordinate
-            currentLocation.getY(),  // Y coordinate (use current Y instead of hardcoded 64)
-            currentLocation.getZ(),  // Z coordinate
-            0.0f,                   // Pitch (vertical rotation)
-            0.0f                    // Yaw (horizontal rotation)
+            currentLocation.getDimension(),  // Dimension pointer
+            currentLocation.getX(),           // X coordinate
+            currentLocation.getY(),           // Y coordinate (use current Y instead of hardcoded 64)
+            currentLocation.getZ(),           // Z coordinate
+            0.0f,                            // Yaw (horizontal rotation)
+            0.0f                             // Pitch (vertical rotation)
         );
         pl->teleport(spawnLocation);
         
